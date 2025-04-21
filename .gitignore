@@ -1,0 +1,42 @@
+# Compiled Java classes
+*.class
+
+# Packaging files
+*.jar
+*.war
+*.ear
+
+# Spring Boot executable jar
+*.run
+
+# IntelliJ IDEA related files
+.idea/
+*.iml
+
+# Eclipse related files
+.classpath
+.project
+.settings/
+bin/
+
+# Maven related files
+target/
+!target/classes/ # Eğer sadece build çıktılarını değil, derlenmiş sınıfları takip etmek isterseniz bu satırı kaldırın veya başına # ekleyin
+
+# Gradle related files
+.gradle/
+build/
+!build/classes/ # Eğer sadece build çıktılarını değil, derlenmiş sınıfları takip etmek isterseniz bu satırı kaldırın veya başına # ekleyin
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Other build / environment specific files that might be generated
+.env
