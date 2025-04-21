@@ -1,42 +1,33 @@
-# Compiled Java classes
-*.class
-
-# Packaging files
-*.jar
-*.war
-*.ear
-
-# Spring Boot executable jar
-*.run
-
-# IntelliJ IDEA related files
-.idea/
-*.iml
-
-# Eclipse related files
-.classpath
-.project
-.settings/
-bin/
-
-# Maven related files
+HELP.md
 target/
-!target/classes/ # Eğer sadece build çıktılarını değil, derlenmiş sınıfları takip etmek isterseniz bu satırı kaldırın veya başına # ekleyin
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
 
-# Gradle related files
-.gradle/
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
 build/
-!build/classes/ # Eğer sadece build çıktılarını değil, derlenmiş sınıfları takip etmek isterseniz bu satırı kaldırın veya başına # ekleyin
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-# Log files
-*.log
-
-# Temporary files
-*.tmp
-
-# OS specific files
-.DS_Store
-Thumbs.db
-
-# Other build / environment specific files that might be generated
-.env
+### VS Code ###
+.vscode/
