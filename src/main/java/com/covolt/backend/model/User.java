@@ -1,19 +1,22 @@
 package com.covolt.backend.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
+@Getter
+@Setter
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "users", indexes = {
         @Index(name = "idx_users_email", columnList = "email"),
         @Index(name = "idx_users_username", columnList = "username")
 })
-@Getter
-@Setter
 public class User extends BaseEntity {
 
     @Column(nullable = false, unique = true, length = 100)
@@ -44,23 +47,12 @@ public class User extends BaseEntity {
 
     private LocalDateTime passwordChangedAt;
 
-    // Rollerin ilişkisi
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-    private Set<Role> roles;
-
-    // Kullanıcı izinleri ilişkisi
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "user_permissions",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_id")
-    )
-    private Set<Permission> permissions;
-
-    // Constructor, Getter, Setter Lombok ile sağlanıyor
+    @Builder.Default
+    private Set<Role> roles = new HashSet<>();
 }
