@@ -83,7 +83,6 @@ public class AuthServiceImpl implements AuthService {
         // Default Role'u ata (örn. ROLE_USER)
         Optional<Role> defaultRoleOpt = roleRepository.findByName("ROLE_USER");
         if (!defaultRoleOpt.isPresent()) {
-            // **Çok Önemli:** Uygulama başlarken ROLE_USER gibi varsayılan rolleri DB'ye eklemelisiniz!
             throw new RuntimeException("Varsayılan 'ROLE_USER' rolü veritabanında bulunamadı!");
         }
         Set<Role> roles = new HashSet<>();
