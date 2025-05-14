@@ -30,4 +30,8 @@ public class RegisterRequest {
     // Opsiyonel Alanlar
     private String fullName;
     private String phoneNumber;
+
+    @NotBlank(message = "Kuruluş adı alanı boş olamaz.") // Kuruluş adı zorunlu
+    @Size(min = 2, max = 100, message = "Kuruluş adı 2 ile 100 karakter arasında olmalıdır.")
+    private String companyName; // Kullanıcının kayıt olurken gireceği kuruluş adı
 }

@@ -47,7 +47,11 @@ public class User extends BaseEntity {
 
     private LocalDateTime passwordChangedAt;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false) // Her kullanıcı bir şirkete AİT OLMALI
+    @JoinColumn(name = "company_id", nullable = false, foreignKey = @ForeignKey(name = "fk_users_company_id")) // DB seviyesinde FK oluşturur
+    private Company company; // Kullanıcının ait olduğu şirket
+
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
