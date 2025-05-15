@@ -10,15 +10,14 @@ import org.slf4j.LoggerFactory;
 
 
 // --- Proje İçi Importlar ---
-import com.covolt.backend.model.Company; // Company Entity
-import com.covolt.backend.model.CompanySubscription; // Entity
-import com.covolt.backend.model.SubscriptionPlan; // Entity
-import com.covolt.backend.model.enums.UserSubscriptionStatus; // Status Enum
-import com.covolt.backend.exception.ResourceCreationException; // Kaynak yaratma hatası
-import com.covolt.backend.exception.SubscriptionNotFoundException; // Yeni aboneik hatası (opsiyonel)
+import com.covolt.backend.core.model.Company; // Company Entity
+import com.covolt.backend.core.model.CompanySubscription; // Entity
+import com.covolt.backend.core.model.SubscriptionPlan; // Entity
+import com.covolt.backend.core.model.enums.UserSubscriptionStatus; // Status Enum
+import com.covolt.backend.core.exception.ResourceCreationException; // Kaynak yaratma hatası
 
-import com.covolt.backend.repository.CompanySubscriptionRepository; // Repository
-import com.covolt.backend.repository.SubscriptionPlanRepository; // Repository
+import com.covolt.backend.core.repository.CompanySubscriptionRepository; // Repository
+import com.covolt.backend.core.repository.SubscriptionPlanRepository; // Repository
 
 
 // --- Java Standart Importlar ---
