@@ -1,5 +1,5 @@
 # Covolt Projesi: Teknik Spesifikasyon ve Yol Haritası
-
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/emretemirdev/covolt-panel-be?utm_source=oss&utm_medium=github&utm_campaign=emretemirdev%2Fcovolt-panel-be&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 ## Versiyon 1.0: Gelişmiş Kullanıcı Yönetimi, Firma (Tenant) ve Abonelik Altyapısı
 
 **Proje Vizyonu:** Covolt, enerji sektöründeki firmalar için kapsamlı bir veri toplama, analiz, raporlama ve yapay zeka destekli optimizasyon platformu olacaktır. Sistem, çok kiracılı (multi-tenant) mimaride çalışarak her firmaya izole ve özelleştirilmiş bir deneyim sunacak, farklı abonelik katmanları ile esnek bir gelir modeli sağlayacaktır.
