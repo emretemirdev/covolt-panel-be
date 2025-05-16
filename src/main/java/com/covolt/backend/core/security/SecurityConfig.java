@@ -72,9 +72,32 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
-                    // Şimdilik basit endpoint yapılandırması, döngü çözüldükten sonra ApiEndpoint enum'u ile güncelleriz
-                    auth.requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                            .anyRequest().authenticated();
+                    for (ApiEndpoint endpoint : ApiEndpoint.values()) {
+                        String httpMethodName = (endpoint.getHttpMethod() != null) ? endpoint.getHttpMethod().name() : null;
+                        AntPathRequestMatcher requestMatcher = new AntPathRequestMatcher(endpoint.getPathPattern(), httpMethodName);
+
+                        switch (endpoint.getAccessType()) {
+                            case PERMIT_ALL:
+                                auth.requestMatchers(requestMatcher).permitAll();
+                                break;
+                            case AUTHENTICATED:
+                                auth.requestMatchers(requestMatcher).authenticated();
+                                break;
+                            case HAS_ROLE:
+                                // ApiEndpoint.authority alanı "PLATFORM_ADMIN" gibi ROLE_ prefix'siz olmalı
+                                auth.requestMatchers(requestMatcher).hasRole(endpoint.getAuthority());
+                                break;
+                            case HAS_AUTHORITY:
+                                // ApiEndpoint.authority alanı "MANAGE_ROLES" gibi izin adı olmalı
+                                auth.requestMatchers(requestMatcher).hasAuthority(endpoint.getAuthority());
+                                break;
+                            case DENY_ALL:
+                                auth.requestMatchers(requestMatcher).denyAll();
+                                break;
+                        }
+                    }
+                    // Enum'da tanımlı olmayan ve yukarıdaki kurallara uymayan diğer tüm istekleri reddet.
+                    auth.anyRequest().denyAll();
                 })
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
