@@ -5,12 +5,15 @@ import com.covolt.backend.modules.authentication.dto.AuthResponse;
 import com.covolt.backend.modules.authentication.dto.LoginRequest;
 import com.covolt.backend.modules.authentication.dto.RefreshTokenRequest;
 import com.covolt.backend.modules.authentication.dto.RegisterRequest;
+import com.covolt.backend.modules.authentication.dto.UserAuthoritiesResponse;
 import com.covolt.backend.modules.authentication.service.AuthService;
 import com.covolt.backend.modules.authentication.service.RefreshTokenService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -41,8 +44,10 @@ import com.covolt.backend.service.CompanySubscriptionService; // Yeni Abonelik S
 // --- Java Standart Importlar ---
 import java.time.Instant; // Zaman için
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional; // Optional importu eklendi
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger; // Loglama için
 import org.slf4j.LoggerFactory; // Loglama için
@@ -203,11 +208,9 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshTokenEntity.getToken())
                 .tokenType("Bearer")
                 .expiresAt(accessTokenExpiration)
-                // İsteğe bağlı olarak AuthResponse'a kullanıcı ve firma ID/adı gibi bilgileri eklenebilir.
-                // Frontend'in login sonrası kullanıcının hangi firmaya ait olduğunu bilmesi gerekebilir.
-                // CustomUserDetails'e bu bilgiler eklendi. Access token payload'ına eklemeyi düşünebilirsiniz
-                // veya LoginResponse DTO'suna direkt ekleyebilirsiniz.
-                // Şu anki AuthResponse DTO'sunda bu alanlar yok, gerekirse AuthResponse güncellenir.
+                .userId(savedUser.getId())
+                .email(savedUser.getEmail())
+                .fullName(savedUser.getFullName())
                 .build();
 
         logger.info("Kullanıcı kaydı ve ilk tokenlar başarıyla oluşturuldu: Email: {}", savedUser.getEmail());
@@ -281,19 +284,19 @@ public class AuthServiceImpl implements AuthService {
 
         Instant accessTokenExpiration = jwtService.extractExpiration(accessToken).toInstant();
 
+        // Kullanıcı bilgilerini veritabanından al
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalStateException("Kimliği doğrulanmış kullanıcı veritabanında bulunamadı."));
+
         // AuthResponse Hazırla
         AuthResponse authResponse = AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshTokenEntity.getToken())
                 .tokenType("Bearer")
                 .expiresAt(accessTokenExpiration)
-                // Eğer AuthResponse'a firma/abonelik bilgisi eklenecekse, CovoltUserDetails'ten alıp buraya ekleyebilirsiniz.
-                // (AuthResponse DTO'su şu an bu alanları içermiyor)
-                // if (userDetails instanceof CovoltUserDetails covoltUserDetails) {
-                //    authResponse.setCompanyId(covoltUserDetails.getCompanyId()); // uuid ise toString
-                //    authResponse.setCompanyName(covoltUserDetails.getCompanyName());
-                //    // etc.
-                // }
+                .userId(user.getId())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
                 .build();
 
         logger.info("Kullanıcı girişi başarılı. Email: {}", request.getEmail());
@@ -338,13 +341,18 @@ public class AuthServiceImpl implements AuthService {
         RefreshToken newRefreshTokenEntity = refreshTokenService.createRefreshToken(userDetails.getUsername());
         Instant newAccessTokenExpiration = jwtService.extractExpiration(newAccessToken).toInstant();
 
+        // Kullanıcı bilgilerini veritabanından al
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalStateException("Kimliği doğrulanmış kullanıcı veritabanında bulunamadı."));
+
         AuthResponse authResponse = AuthResponse.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshTokenEntity.getToken())
                 .tokenType("Bearer")
                 .expiresAt(newAccessTokenExpiration)
-                // Eğer AuthResponse'a firma/abonelik bilgisi eklenecekse (CustomUserDetails'ten)
-                // if (userDetails instanceof CovoltUserDetails covoltUserDetails) { ... }
+                .userId(user.getId())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
                 .build();
 
         logger.info("Refresh token başarıyla tamamlandı kullanıcı: {}", userDetails.getUsername());
@@ -365,6 +373,48 @@ public class AuthServiceImpl implements AuthService {
         // Logout endpointine ulaşıldıysa JWT filtre geçerli access token'ı doğruladı demektir.
         // Logout logic sadece refresh token'ı geçersiz kılarak token çiftini bitirir.
         logger.info("Logout işlemi tamamlandı.");
+    }
+
+    // --- Kullanıcı Yetkileri Metodu ---
+    @Override
+    public UserAuthoritiesResponse getUserAuthorities() {
+        logger.info("Kullanıcı yetkileri isteği alındı.");
+
+        // Mevcut kimlik doğrulanmış kullanıcıyı al
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            logger.warn("Kimlik doğrulanmamış kullanıcı için yetki bilgisi isteği reddedildi.");
+            throw new IllegalStateException("Kullanıcı kimliği doğrulanmamış.");
+        }
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        // Kullanıcının rollerini ve izinlerini ayır
+        List<String> roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(auth -> auth.startsWith("ROLE_"))
+                .collect(Collectors.toList());
+
+        List<String> permissions = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(auth -> !auth.startsWith("ROLE_"))
+                .collect(Collectors.toList());
+
+        // Kullanıcı bilgilerini veritabanından al
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalStateException("Kimliği doğrulanmış kullanıcı veritabanında bulunamadı."));
+
+        // Yanıtı oluştur
+        UserAuthoritiesResponse response = UserAuthoritiesResponse.builder()
+                .userId(user.getId())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .roles(roles)
+                .permissions(permissions)
+                .build();
+
+        logger.info("Kullanıcı yetkileri başarıyla alındı: {}", user.getEmail());
+        return response;
     }
 
     // --- Başarısız Login Denemesi Yardımcı Metodu (Opsiyonel - Şu an kullanılmıyor) ---

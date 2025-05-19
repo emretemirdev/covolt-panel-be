@@ -20,6 +20,7 @@ public enum ApiEndpoint {
     // Kimlik Doğrulaması Gerektiren Auth Endpoint'leri
     AUTH_LOGOUT("/api/auth/logout", HttpMethod.POST, SecurityAccess.AUTHENTICATED, null),
     AUTH_CHANGE_PASSWORD("/api/auth/password/change", HttpMethod.POST, SecurityAccess.AUTHENTICATED, null), // Mevcut şifreyle değiştirme
+    AUTH_USER_AUTHORITIES("/api/auth/user-authorities", HttpMethod.GET, SecurityAccess.PERMIT_ALL, null), // Geçici olarak herkese açık
 
     // === Kullanıcı Profili (Kendisi İçin) ===
     USER_GET_PROFILE("/api/v1/users/me", HttpMethod.GET, SecurityAccess.AUTHENTICATED, null), // İzin "PROFILE_READ_OWN" olabilir
