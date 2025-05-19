@@ -1,4 +1,4 @@
-package com.covolt.backend.modules.platform_administration.role_permission_management.dto;
+package com.covolt.backend.modules.platform_administration.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

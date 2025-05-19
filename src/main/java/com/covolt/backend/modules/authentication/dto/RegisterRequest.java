@@ -1,4 +1,4 @@
-package com.covolt.backend.dto.auth;
+package com.covolt.backend.modules.authentication.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

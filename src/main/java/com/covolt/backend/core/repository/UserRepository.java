@@ -6,9 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository // Sende zaten bu annotasyon olmalı
-public interface UserRepository extends JpaRepository<User, Long> { // Veya PK tipinize göre UUID veya ne kullanıyorsanız onu yazın
+public interface UserRepository extends JpaRepository<User, UUID> { // Veya PK tipinize göre UUID veya ne kullanıyorsanız onu yazın
 
     Optional<User> findByEmail(String email);
 

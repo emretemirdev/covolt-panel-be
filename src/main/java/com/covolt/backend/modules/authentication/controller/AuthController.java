@@ -1,11 +1,9 @@
-package com.covolt.backend.controller.auth;
+package com.covolt.backend.modules.authentication.controller;
 
-import com.covolt.backend.dto.auth.AuthResponse;
-import com.covolt.backend.dto.auth.LoginRequest;
-import com.covolt.backend.dto.auth.RefreshTokenRequest;
-import com.covolt.backend.dto.auth.RegisterRequest;
-import com.covolt.backend.dto.auth.LogoutRequest;
-import com.covolt.backend.service.AuthService;
+import com.covolt.backend.modules.authentication.dto.*;
+import com.covolt.backend.modules.authentication.service.AuthService;
+
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

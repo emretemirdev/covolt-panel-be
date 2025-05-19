@@ -8,7 +8,6 @@ public enum CompanyType {
     MUNICIPALITY("Belediye"),
     OTHER("Diğer");
 
-    //TODO : Enumlar isteğe bağlı genişletilecek
 
     private final String description;
 

@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -27,6 +28,36 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler { // 
 
     // 1. Kendi Tanımladığımız Özel Exception'lar İçin Handler'lar
 
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateResourceException(DuplicateResourceException ex, WebRequest request) {
+        logger.warn("DuplicateResourceException yakalandı: {}", ex.getMessage());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(Instant.now())
+                .status(HttpStatus.CONFLICT.value())
+                .error(HttpStatus.CONFLICT)
+                .message(ex.getMessage()) // Exception kendi mesajını (ErrorCode'dan formatlanmış) kullanır.
+                .path(extractPath(request))
+                .build();
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT); // Statü: 409
+    }
+
+    // YENİ HANDLER: DuplicateRegistrationException için spesifik handler
+    @ExceptionHandler(DuplicateRegistrationException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateRegistrationException(DuplicateRegistrationException ex, WebRequest request) {
+        logger.warn("DuplicateRegistrationException yakalandı: {}", ex.getMessage());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(Instant.now())
+                .status(HttpStatus.CONFLICT.value()) // Exception constructor'ındaki statüyü kullan
+                .error(HttpStatus.CONFLICT)         // Veya doğrudan ex.getHttpStatus() kullanılabilir.
+                .message(ex.getMessage())           // Exception'ın taşıdığı özel mesajı kullan
+                .path(extractPath(request))
+                .build();
+        // Not: DuplicateRegistrationException zaten Conflict statüsü ile tanımlı.
+        // Bu handler'ı eklemek, onun generic Exception handler'a düşmesini engeller.
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT); // Statü: 409
+    }
+
+    // ... (MethodArgumentNotValidException handler dahil diğer mevcut handler'lar)
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
         logger.warn("ResourceNotFoundException yakalandı: {}", ex.getMessage());
@@ -38,19 +69,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler { // 
                 .path(extractPath(request))
                 .build();
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateResourceException(DuplicateResourceException ex, WebRequest request) {
-        logger.warn("DuplicateResourceException yakalandı: {}", ex.getMessage());
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now())
-                .status(HttpStatus.CONFLICT.value())
-                .error(HttpStatus.CONFLICT)
-                .message(ex.getMessage())
-                .path(extractPath(request))
-                .build();
-        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(ResourceCreationException.class) // Bu exception'ı daha önce tanımlamıştık sanırım
@@ -72,9 +90,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler { // 
         logger.warn("TokenRefreshException yakalandı: {}", ex.getMessage());
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(Instant.now())
-                .status(HttpStatus.UNAUTHORIZED.value()) // veya FORBIDDEN, duruma göre
+                .status(HttpStatus.CONFLICT.value()) // veya FORBIDDEN, duruma göre
                 .error(HttpStatus.UNAUTHORIZED)
                 .message(ex.getMessage())
+                .path(extractPath(request))
+                .build();
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<ErrorResponse> handleLockedException(LockedException ex, WebRequest request) {
+        logger.warn("LockedException yakalandı: Hesap kilitli. {}", ex.getMessage());
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(Instant.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error(HttpStatus.UNAUTHORIZED)
+                .message("Hesabınız kilitlenmiştir.") // Daha kullanıcı dostu bir mesaj
                 .path(extractPath(request))
                 .build();
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);

@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;   // ÖNEML
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import com.covolt.backend.modules.platform_administration.dto.PermissionRequestDto;
 
 @Configuration
 @EnableWebSecurity
@@ -31,18 +32,6 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService; // CustomUserDetailsService buraya enjekte edilecek
-    // PasswordEncoder'ı buradan kaldırıyoruz, çünkü bu sınıf onu @Bean ile üretiyor.
-    // private final PasswordEncoder passwordEncoder; // <<<--- BU SATIRI SİL VEYA YORUMA AL
-
-    // @RequiredArgsConstructor bu constructor'ı oluşturur (PasswordEncoder olmadan):
-    // public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
-    //                       UserDetailsService userDetailsService) {
-    //     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    //     this.userDetailsService = userDetailsService;
-    // }
-
-    // PasswordEncoder bean'ini burada tanımlıyoruz.
-    // AuthServiceImpl veya diğer servisler bu bean'i doğrudan enjekte alacak.
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

@@ -32,7 +32,7 @@ public class SubscriptionPlan extends BaseEntity { // BaseEntity id, createdAt, 
     @Column(name = "display_name", nullable = false)
     private String displayName; // Kullanıcıya gösterilecek - "Ücretsiz Deneme", "Temel Aylık Paket"
 
-    @Lob
+    @Column(columnDefinition = "TEXT") // PostgreSQL için TEXT tipi
     private String description;
 
     @Column(nullable = false, precision = 10, scale = 2)

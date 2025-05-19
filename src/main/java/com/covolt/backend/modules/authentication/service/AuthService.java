@@ -1,9 +1,10 @@
-package com.covolt.backend.service;
+package com.covolt.backend.modules.authentication.service;
 
-import com.covolt.backend.dto.auth.AuthResponse;
-import com.covolt.backend.dto.auth.LoginRequest;
-import com.covolt.backend.dto.auth.RefreshTokenRequest;
-import com.covolt.backend.dto.auth.RegisterRequest;
+import com.covolt.backend.modules.authentication.dto.AuthResponse;
+import com.covolt.backend.modules.authentication.dto.LoginRequest;
+import com.covolt.backend.modules.authentication.dto.RefreshTokenRequest;
+import com.covolt.backend.modules.authentication.dto.RegisterRequest;
+
 
 public interface AuthService {
 

@@ -1,4 +1,4 @@
-package com.covolt.backend.controller.auth;
+package com.covolt.backend.modules.authentication.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

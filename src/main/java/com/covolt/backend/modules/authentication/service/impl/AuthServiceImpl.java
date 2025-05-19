@@ -1,6 +1,12 @@
-package com.covolt.backend.core.service.impl;
+package com.covolt.backend.modules.authentication.service.impl;
 
 // --- Spring Framework & Security Importları ---
+import com.covolt.backend.modules.authentication.dto.AuthResponse;
+import com.covolt.backend.modules.authentication.dto.LoginRequest;
+import com.covolt.backend.modules.authentication.dto.RefreshTokenRequest;
+import com.covolt.backend.modules.authentication.dto.RegisterRequest;
+import com.covolt.backend.modules.authentication.service.AuthService;
+import com.covolt.backend.modules.authentication.service.RefreshTokenService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,10 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; // Transaction yönetimi için
 
 // --- Proje İçi Importlar ---
-import com.covolt.backend.dto.auth.AuthResponse;
-import com.covolt.backend.dto.auth.LoginRequest;
-import com.covolt.backend.dto.auth.RefreshTokenRequest;
-import com.covolt.backend.dto.auth.RegisterRequest;
+
 import com.covolt.backend.core.exception.DuplicateRegistrationException;
 import com.covolt.backend.core.exception.ResourceCreationException; // Yeni özel hata sınıfı
 import com.covolt.backend.core.exception.TokenRefreshException;
@@ -24,20 +27,21 @@ import com.covolt.backend.core.model.RefreshToken;
 import com.covolt.backend.core.model.Role;
 import com.covolt.backend.core.model.User;
 import com.covolt.backend.core.model.enums.CompanyStatus; // CompanyStatus Enum
-// import com.covolt.backend.core.models.enums.UserSubscriptionStatus; // Abonelik Enum (sonra)
+import com.covolt.backend.core.model.CompanySubscription; // Abonelik Entity (abonelik servisi kullanılınca)
+import com.covolt.backend.core.model.enums.UserSubscriptionStatus; // Abonelik Enum (abonelik servisi kullanılınca)
+
 
 import com.covolt.backend.core.repository.CompanyRepository; // Yeni Company Repository
 import com.covolt.backend.core.repository.RoleRepository;
 import com.covolt.backend.core.repository.UserRepository;
 import com.covolt.backend.core.security.jwt.JwtService;
 import com.covolt.backend.core.security.service.CustomUserDetailsService;
-import com.covolt.backend.service.AuthService;
-import com.covolt.backend.service.RefreshTokenService;
-// import com.covolt.backend.service.CompanySubscriptionService; // Yeni Abonelik Servisi (sonra)
+import com.covolt.backend.service.CompanySubscriptionService; // Yeni Abonelik Servisi (şimdi kullanıyoruz)
 
 // --- Java Standart Importlar ---
 import java.time.Instant; // Zaman için
 import java.util.HashSet;
+import java.util.Optional; // Optional importu eklendi
 import java.util.Set;
 
 import org.slf4j.Logger; // Loglama için
@@ -57,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final CustomUserDetailsService userDetailsService;
-    // private final CompanySubscriptionService companySubscriptionService; // Abonelik servisi sonra eklenecek
+    private final CompanySubscriptionService companySubscriptionService; // Abonelik servisi şimdi enjekte ediliyor
 
 
     // --- Constructor ---
@@ -69,8 +73,9 @@ public class AuthServiceImpl implements AuthService {
                            AuthenticationManager authenticationManager,
                            JwtService jwtService,
                            RefreshTokenService refreshTokenService,
-                           CustomUserDetailsService userDetailsService
-            /* , CompanySubscriptionService companySubscriptionService */) { // Abonelik servisi için yer tutuldu
+                           CustomUserDetailsService userDetailsService,
+                           CompanySubscriptionService companySubscriptionService // Abonelik servisi şimdi bağımlılık
+    ) { // Abonelik servisi için yer tutuldu
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.companyRepository = companyRepository; // Yeni bağımlılık atandı
@@ -79,7 +84,7 @@ public class AuthServiceImpl implements AuthService {
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
         this.userDetailsService = userDetailsService;
-        // this.companySubscriptionService = companySubscriptionService; // Sonra atanacak
+        this.companySubscriptionService = companySubscriptionService; // Şimdi atanıyor
     }
 
 
@@ -132,13 +137,6 @@ public class AuthServiceImpl implements AuthService {
                 // permissions User entity'sinden kaldırıldı.
                 .build();
 
-        // Opsiyonel: Eğer yeni oluşturulan Company'nin ownerUserIdentifier'ı yeni User ise, Company'yi güncelle.
-        // Örneğin, kaydolan kullanıcının username'ini owner olarak set et.
-        // if (savedCompany.getOwnerUserIdentifier() == null) { // Veya başka bir koşul
-        //     savedCompany.setOwnerUserIdentifier(savedUser.getUsername()); // Veya ID'si
-        //     companyRepository.save(savedCompany); // Tekrar kaydetmek gerekebilir
-        // }
-
 
         // 4. Varsayılan Rol ("ROLE_USER") Atama
         // Kullanıcı ilk kaydolduğunda sadece standart USER rolü atanacak.
@@ -172,10 +170,21 @@ public class AuthServiceImpl implements AuthService {
             throw new ResourceCreationException("Kullanıcı oluşturulurken bir hata meydana geldi: " + e.getMessage(), e);
         }
 
-        // 6. (SONRAKİ ADIM) Yeni Oluşturulan Firma İçin Deneme Aboneliği Başlat
-        // Firma ve kullanıcı kaydedildikten sonra, bu firmaya bir deneme aboneliği oluşturulacak.
-        // Bunun için CompanySubscriptionService.startTrial metodunu çağıracağız.
-        // companySubscriptionService.startTrial(savedCompany, defaultTrialPlan); // defaultTrialPlan da SubscriptionPlanRepository'den çekilmeli
+        // 6. Yeni Oluşturulan Firma İçin Deneme Aboneliği Başlat (Şimdi aktive edildi)
+        try {
+            companySubscriptionService.startTrial(savedCompany); // defaultTrialPlan bilgisi servisin içinde config'den geliyor
+            logger.info("Firma (ID: {}) için deneme aboneliği başarıyla başlatıldı.", savedCompany.getId());
+        } catch (Exception e) {
+            // Abonelik başlatılamasa bile kullanıcı ve firma kaydedilmiş olabilir.
+            // Karar: Kayıt işlemini atomik mi istiyoruz yoksa abonelik opsiyonel mi?
+            // Şimdilik, abonelik hatasını da loglayıp, kayıt işlemini başarılı sayalım (soft fail).
+            // Eğer kritikse, buradan da exception fırlatılabilir ve kayıt geri alınır.
+            logger.error("Firma (ID: {}) için deneme aboneliği başlatılırken hata oluştu. Kayıt tamamlandı ama abonelik yok: {}",
+                    savedCompany.getId(), e.getMessage(), e);
+            // Eğer burası kritikse aşağıdaki satırı aktif edin:
+            // throw new ResourceCreationException("Kayıt tamamlandı ancak abonelik başlatılırken hata oluştu: " + e.getMessage(), e);
+        }
+
 
         // 7. Tokenları Üret ve Dön
         // CustomUserDetailsService, UserDetails objesini oluştururken kullanıcının
@@ -196,9 +205,9 @@ public class AuthServiceImpl implements AuthService {
                 .expiresAt(accessTokenExpiration)
                 // İsteğe bağlı olarak AuthResponse'a kullanıcı ve firma ID/adı gibi bilgileri eklenebilir.
                 // Frontend'in login sonrası kullanıcının hangi firmaya ait olduğunu bilmesi gerekebilir.
-                // .userId(savedUser.getId().toString()) // User PK UUID ise toString() gerekli
-                // .companyId(savedCompany.getId().toString())
-                // .companyName(savedCompany.getName())
+                // CustomUserDetails'e bu bilgiler eklendi. Access token payload'ına eklemeyi düşünebilirsiniz
+                // veya LoginResponse DTO'suna direkt ekleyebilirsiniz.
+                // Şu anki AuthResponse DTO'sunda bu alanlar yok, gerekirse AuthResponse güncellenir.
                 .build();
 
         logger.info("Kullanıcı kaydı ve ilk tokenlar başarıyla oluşturuldu: Email: {}", savedUser.getEmail());
@@ -207,10 +216,7 @@ public class AuthServiceImpl implements AuthService {
 
     // --- Login Metodu ---
     @Override
-    @Transactional(readOnly = true) // Login sırasında veri güncellemesi (failed attempts, last login) olabilir.
-    // Eğer bu güncellemeler olacaksa readOnly = false olmalı!
-    // Eğer sadece abonelik kontrolü için abonelik servisi çağrılacaksa
-    // ve o servis transactionalsa, burası readOnly kalabilir veya readOnly=false olur.
+    @Transactional(readOnly = false) // Başarısız deneme sayacını sıfırlamak/Son login zamanını kaydetmek için false yaptık
     public AuthResponse login(LoginRequest request) {
         logger.info("Kullanıcı giriş denemesi: Email: {}", request.getEmail());
 
@@ -229,57 +235,41 @@ public class AuthServiceImpl implements AuthService {
             // Başarısız giriş deneme sayısını artırma gibi logic burada VEYA CustomUserDetailsService'de yapılabilir.
             // GlobalExceptionHandler bu hatayı yakalayacak ve genel bir 401 yanıtı dönecek.
             logger.warn("Kimlik doğrulama başarısız: Email: {}", request.getEmail());
-            // Optional: Başarısız deneme sayısını artırma logic'i eklenebilir.
-            // handleFailedLoginAttempt(request.getEmail());
-            throw new BadCredentialsException("E-posta veya şifre yanlış."); // Güvenli genel hata mesajı
+            // Optional: Başarısız deneme sayısını artırma logic'i eklenebilir (buradan kaldırıldı, User Entity'sinde alan var).
+            // throw new BadCredentialsException("E-posta veya şifre yanlış."); // GlobalExceptionHandler handled it
+            throw ex; // Hata fırlatmayı GlobalExceptionHandler'a bırakıyoruz
         }
+
 
         // Kimlik doğrulama başarılıysa Spring Security'nin UserDetails objesini al
         // CustomUserDetailsService'in dönüştürdüğü UserDetails objesi buraya gelir.
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-        // --- Login Sonrası Kontroller ve Abonelik Logic'i (Planlanan) ---
-        // Bu kısım, abonelik ve firma aktiflik kontrollerini içerecek şekilde güncellenecek.
-        // UserDetails'den kullanıcının tam entity objesini çekmek gerekebilir
-        // (UserDetails JPA Entity değildir ve üzerinde Company/Subscription gibi ilişkili objelere erişim garanti olmaz).
-        /*
-        User authenticatedUser = userRepository.findByEmail(userDetails.getUsername())
-                                    .orElseThrow(() -> new RuntimeException("Authenticated user not found in DB!")); // Olmaması gereken durum
+        // --- Login Sonrası Kontroller ve Abonelik Logic'i ---
+        // Bu kısım CustomUserDetailsService içine taşındı. CustomUserDetailsService zaten
+        // kullanıcının enabled, locked durumunu ve firmanın aktif aboneliğini kontrol edip,
+        // UserDetails objesine ilgili bilgiyi set ediyor (CovoltUserDetails).
+        // UserDetails.isEnabled(), isAccountNonLocked() vb. Spring Security tarafından login sırasında otomatik kontrol edilir.
+        // Abonelik kontrolü CustomUserDetailsService'de yapılarak isEnabled veya diğer non-locked metotları override edilebilir,
+        // Veya SubscriptionInactiveException CustomUserDetailsService içinde fırlatılıp GlobalExceptionHandler tarafından yakalanabilir.
+        // Şu anki implementasyonda abonelik durumu CovoltUserDetails içinde taşınıyor.
+        // Login sonrasında sadece başarılı kimlik doğrulamadan devam ediyoruz.
 
-        // 1. Kullanıcı Durumu Kontrolü (enabled, locked, status)
-        if (!authenticatedUser.isEnabled() || authenticatedUser.isLocked() || authenticatedUser.getStatus() != UserStatus.ACTIVE) { // Eğer UserStatus enum varsa
-            logger.warn("Giriş engellendi: Kullanıcı durumu uygun değil. Email: {}", authenticatedUser.getEmail());
-             // Abonelik aktif değilse fırlattığımız özel exception SubscriptionInactiveException olabilir.
-             // throw new SubscriptionInactiveException("Hesabınız şu anda aktif değil."); // GlobalExceptionHandler yakalar
-             // Veya Spring Security DisabledException, LockedException fırlatılabilir (CustomUserDetailsService'de)
-            throw new BadCredentialsException("Hesabınız şu anda aktif değil."); // Generic message
-        }
-
-        // 2. Firmanın Abonelik Durumunu Kontrol Et (CompanySubscriptionService ile)
-        Company userCompany = authenticatedUser.getCompany();
-        if (userCompany == null) { // Kullanıcı firmaya bağlı değilse (olmaması gereken durum @ManyToOne nullable=false yaptık)
-             logger.error("Kullanıcı firmaya bağlı değil: {}", authenticatedUser.getEmail());
-             throw new RuntimeException("Kullanıcı şirket bilgisi eksik."); // Kritik hata
-        }
-
-        // CompanySubscriptionService'den firmanın aktif aboneliğini çek
-        // Bu metot abonelik yoksa veya süresi dolmuşsa durumu kontrol edecek.
-        Optional<CompanySubscription> activeSubscriptionOpt = companySubscriptionService.getCurrentActiveSubscription(userCompany);
-
-        if (activeSubscriptionOpt.isEmpty() || !activeSubscriptionOpt.get().hasAccess()) { // hasAccess() Subscription entity'de yardımcı metot olabilir.
-             logger.warn("Giriş engellendi: Firmanın aktif aboneliği yok veya süresi dolmuş/pasif. Firma: {}, Kullanıcı: {}", userCompany.getName(), authenticatedUser.getEmail());
-            throw new SubscriptionInactiveException("Firmanızın aboneliği şu anda aktif değil."); // GlobalExceptionHandler yakalar
-        }
-
-        // 3. Login Sırasında Başarısız Deneme Sayacını Sıfırla ve Son Giriş Zamanını Güncelle
-        // Eğer failed login attempts yönetimi burada yapılıyorsa:
-        // if (authenticatedUser.getFailedLoginAttempts() > 0) {
-        //     authenticatedUser.setFailedLoginAttempts(0);
-        //     userRepository.save(authenticatedUser); // Transactional olması gerekli
+        // User entity'sini çekip last login gibi bilgileri güncelleyebiliriz (Opsiyonel, transactional yaparsak)
+        // try {
+        //     User authenticatedUser = userRepository.findByEmail(userDetails.getUsername())
+        //             .orElseThrow(() -> new IllegalStateException("Authenticated user not found in DB: " + userDetails.getUsername()));
+        //     // Eğer login attempt sayacı AuthServiceImpl'de yönetiliyorsa
+        //     if (authenticatedUser.getFailedLoginAttempts() > 0) {
+        //          authenticatedUser.setFailedLoginAttempts(0);
+        //          userRepository.save(authenticatedUser); // save only if changed
+        //     }
+        //      authenticatedUser.setLastLoginAt(LocalDateTime.now()); // Eğer LocalDateTime kullandığınız için
+        //     // userRepository.save(authenticatedUser); // Kaydet
+        // } catch (Exception e) {
+        //      logger.error("Login sonrası kullanıcı verilerini güncelleme hatası: {}", userDetails.getUsername(), e);
+        //      // Logla ama girişi engelleme, zaten login oldu
         // }
-        // authenticatedUser.setLastLoginAt(LocalDateTime.now()); // LocalDateTime kullandığınız için
-        // userRepository.save(authenticatedUser); // Transactional olması gerekli
-        */
         // --- Login Sonrası Kontroller Sonu ---
 
 
@@ -297,11 +287,13 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshTokenEntity.getToken())
                 .tokenType("Bearer")
                 .expiresAt(accessTokenExpiration)
-                // Eğer AuthResponse'a firma/abonelik bilgisi eklenecekse:
-                // .companyId(authenticatedUser.getCompany().getId().toString())
-                // .companyName(authenticatedUser.getCompany().getName())
-                // .subscriptionStatus(activeSubscriptionOpt.map(s -> s.getStatus().name()).orElse("NO_SUBSCRIPTION")) // Enum name
-                // .planName(activeSubscriptionOpt.map(s -> s.getPlan().getName()).orElse(null)) // Plan name
+                // Eğer AuthResponse'a firma/abonelik bilgisi eklenecekse, CovoltUserDetails'ten alıp buraya ekleyebilirsiniz.
+                // (AuthResponse DTO'su şu an bu alanları içermiyor)
+                // if (userDetails instanceof CovoltUserDetails covoltUserDetails) {
+                //    authResponse.setCompanyId(covoltUserDetails.getCompanyId()); // uuid ise toString
+                //    authResponse.setCompanyName(covoltUserDetails.getCompanyName());
+                //    // etc.
+                // }
                 .build();
 
         logger.info("Kullanıcı girişi başarılı. Email: {}", request.getEmail());
@@ -318,30 +310,30 @@ public class AuthServiceImpl implements AuthService {
         RefreshToken existingRefreshToken = refreshTokenService.findByToken(request.getRefreshToken())
                 .orElseThrow(() -> {
                     logger.warn("Refresh token bulunamadı veya geçerli değil. İstenen token: {}", request.getRefreshToken());
-                    // YENİ ve DOĞRU KULLANIM:
-                    // TokenRefreshException'ın parametresiz constructor'ını kullanıyoruz,
-                    // bu da ErrorCode.AUTH_005'i ("Yenileme tokeni bulunamadı veya geçersiz.") kullanır.
+                    // TokenRefreshException'ın parametresiz constructor'ını kullanıyoruz (AUTH_005).
                     return new TokenRefreshException();
-                    // Alternatif olarak, eğer ErrorCode.AUTH_005 mesaj template'i "%s" gibi bir argüman alsaydı
-                    // ve biz request.getRefreshToken()'i o argümana vermek isteseydik,
-                    // TokenRefreshException'a (String arg) alan ve super(ErrorCode.AUTH_005, HttpStatus.UNAUTHORIZED, arg) çağıran
-                    // bir constructor ekleyebilirdik. Ama şimdiki ErrorCode.AUTH_005 tanımımız argüman almıyor.
-                    // Veya TokenRefreshException'daki (String customMessage, ErrorCode specificAuthErrorCode) constructor'ını kullanabilirdik:
-                    // return new TokenRefreshException("İstenen yenileme tokeni '" + request.getRefreshToken() + "' bulunamadı veya geçersiz.", ErrorCode.AUTH_005);
                 });
 
-        // Bu satırdan sonra, RefreshTokenService'in verifyExpiration metodu çağrılacak.
-        // O metot zaten token süresi dolmuşsa ErrorCode.AUTH_006 ile kendi TokenRefreshException'ını fırlatıyor.
-        // Yani AuthServiceImpl'in verifyExpiration için ayrıca exception fırlatmasına gerek yok.
+        // RefreshTokenService'in verifyExpiration metodu token süresi dolmuşsa ErrorCode.AUTH_006 ile kendi TokenRefreshException'ını fırlatacak.
+        // Başka bir try/catch gerekmez, hata yakalama GlobalExceptionHandler'a bırakılır.
         refreshTokenService.verifyExpiration(existingRefreshToken);
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(existingRefreshToken.getUsername());
 
-        // --- Refresh Sonrası Abonelik Kontrolü (Daha sonra eklenecek) ---
-        // ...
+        // --- Refresh Sonrası Abonelik Kontrolü (Planlanan - CustomUserDetailsService'de yapılıyor artık) ---
+        // userDetails zaten CovoltUserDetails ise gerekli abonelik bilgileri ve durumu içerir.
+        // Güvenlik filtreleri (SecurityConfig) veya @PreAuthorize ekspresyonları
+        // CovoltUserDetails içindeki abonelik/feature bilgilerini kullanabilir.
+        // Eğer kritik bir özellik aboneliğe bağlı ise, token validasyonu veya refresh sonrası
+        // o özelliğe erişimin hala mümkün olup olmadığı CustomUserDetailsService'den gelen
+        // CovoltUserDetails'deki isEnabled/isAccountNonLocked metotları veya authority listesi ile kontrol edilmelidir.
+        // Şu anki yapıda CovoltUserDetails isEnabled'ı User entity enabled/locked'ından alıyor, abonelik durumu ayrı taşınıyor.
+        // Erişim kontrolü Security layer veya metod seviyesinde @PreAuthorize ile yapılmalıdır, login/refresh değil.
 
-        refreshTokenService.deleteByToken(existingRefreshToken.getToken()); // Eski refresh tokenı sil
+        // Eski refresh tokenı sil
+        refreshTokenService.deleteByToken(existingRefreshToken.getToken());
 
+        // Yeni tokenları üret
         String newAccessToken = jwtService.generateToken(userDetails);
         RefreshToken newRefreshTokenEntity = refreshTokenService.createRefreshToken(userDetails.getUsername());
         Instant newAccessTokenExpiration = jwtService.extractExpiration(newAccessToken).toInstant();
@@ -351,6 +343,8 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(newRefreshTokenEntity.getToken())
                 .tokenType("Bearer")
                 .expiresAt(newAccessTokenExpiration)
+                // Eğer AuthResponse'a firma/abonelik bilgisi eklenecekse (CustomUserDetails'ten)
+                // if (userDetails instanceof CovoltUserDetails covoltUserDetails) { ... }
                 .build();
 
         logger.info("Refresh token başarıyla tamamlandı kullanıcı: {}", userDetails.getUsername());
@@ -367,25 +361,32 @@ public class AuthServiceImpl implements AuthService {
         refreshTokenService.deleteByToken(refreshToken);
         // Access token hala geçerli olsa da, refresh token olmadığından
         // yeni token setine ulaşılamaz ve oturum etkin bir şekilde sona erer.
+        // SecurityContextHolder.clearContext(); // Logout request Spring Security context temizleyicisi tarafından handle edilebilir.
+        // Logout endpointine ulaşıldıysa JWT filtre geçerli access token'ı doğruladı demektir.
+        // Logout logic sadece refresh token'ı geçersiz kılarak token çiftini bitirir.
         logger.info("Logout işlemi tamamlandı.");
     }
 
-    // --- Başarısız Login Denemesi Yardımcı Metodu (Opsiyonel) ---
+    // --- Başarısız Login Denemesi Yardımcı Metodu (Opsiyonel - Şu an kullanılmıyor) ---
      /*
      @Transactional // Bu metot transaction içinde olmalı
      private void handleFailedLoginAttempt(String email) {
+         // LOGIN_ATTEMPT_THRESHOLD ve LOCKOUT_DURATION_MINUTES gibi sabitlere ihtiyacı var
+         // User entity'de lockoutEndTime gibi alanlara da ihtiyacı var.
+         // Eğer UserStatus enum kullanılıyorsa.
+         // Bu logic UserRepository'nin içinde veya ayrı bir AccountManagementService içinde daha uygun olabilir.
          Optional<User> userOpt = userRepository.findByEmail(email);
          userOpt.ifPresent(user -> {
-             user.setFailedLoginAttempts(user.getFailedLoginAttempts() + 1);
-             if (user.getFailedLoginAttempts() >= LOGIN_ATTEMPT_THRESHOLD) { // LOGIN_ATTEMPT_THRESHOLD bir sabittir
+             int currentAttempts = user.getFailedLoginAttempts() + 1;
+             user.setFailedLoginAttempts(currentAttempts);
+             if (currentAttempts >= LOGIN_ATTEMPT_THRESHOLD) {
                  user.setLocked(true);
-                 user.setLockoutEndTime(LocalDateTime.now().plusMinutes(LOCKOUT_DURATION_MINUTES)); // LOCKOUT_DURATION_MINUTES bir sabittir
-                 user.setStatus(UserStatus.LOCKED_FAILED_LOGIN); // Eğer UserStatus enum varsa
+                 // user.setLockoutEndTime(LocalDateTime.now().plusMinutes(LOCKOUT_DURATION_MINUTES));
+                 // user.setStatus(UserStatus.LOCKED_FAILED_LOGIN); // Eğer UserStatus varsa
                  logger.warn("Kullanici hesabı başarısız giriş denemeleri nedeniyle kilitlendi: {}", email);
              }
-             userRepository.save(user);
+             userRepository.save(user); // Değişiklikleri kaydet
          });
      }
      */
-
 }
