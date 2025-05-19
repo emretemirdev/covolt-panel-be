@@ -23,6 +23,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import com.covolt.backend.modules.platform_administration.dto.PermissionRequestDto;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -47,6 +52,40 @@ public class SecurityConfig {
         // authProvider.setPasswordEncoder(this.passwordEncoder()); // this.passwordEncoder() yerine direkt metot çağrısı
         authProvider.setPasswordEncoder(passwordEncoder()); // Yukarıdaki @Bean metodunu çağırır
         return authProvider;
+    }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // İzin verilen origins
+        configuration.addAllowedOrigin("http://localhost:5173");
+        configuration.addAllowedOriginPattern("http://localhost:5173/**");
+        configuration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:5173/**"));
+
+        // Gerekirse production URL'lerini de ekleyin
+        // configuration.addAllowedOrigin("https://your-production-domain.com");
+
+        // İzin verilen HTTP metodları
+        configuration.addAllowedMethod("GET");
+        configuration.addAllowedMethod("POST");
+        configuration.addAllowedMethod("PUT");
+        configuration.addAllowedMethod("DELETE");
+        configuration.addAllowedMethod("PATCH");
+        configuration.addAllowedMethod("OPTIONS");
+
+        // İzin verilen headers
+        configuration.addAllowedHeader("*");
+
+        // Credentials izni (cookies, authorization headers, etc.)
+        configuration.setAllowCredentials(true);
+
+        // OPTIONS isteklerinin önbelleğe alınma süresi (1 saat)
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 
     @Bean
