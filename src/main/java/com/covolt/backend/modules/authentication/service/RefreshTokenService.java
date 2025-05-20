@@ -1,4 +1,4 @@
-package com.covolt.backend.service;
+package com.covolt.backend.modules.authentication.service;
 
 import com.covolt.backend.core.exception.TokenRefreshException;
 import com.covolt.backend.core.model.RefreshToken;

@@ -1,7 +1,8 @@
 package com.covolt.backend.modules.platform_administration.role_permission_management.service;
 
 import com.covolt.backend.core.model.Permission;
-import com.covolt.backend.modules.platform_administration.role_permission_management.dto.PermissionRequestDto;
+import com.covolt.backend.modules.platform_administration.dto.PermissionRequestDto;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;

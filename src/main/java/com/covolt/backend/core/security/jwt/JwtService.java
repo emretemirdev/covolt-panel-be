@@ -1,5 +1,6 @@
 package com.covolt.backend.core.security.jwt;
 
+import com.covolt.backend.core.security.service.CovoltUserDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Service;
 import java.security.Key;
 import java.util.Date;
 import java.util.function.Function;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class JwtService {
@@ -24,8 +27,17 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        
+        // Sadece kullanıcı ID'sini ekle
+        if (userDetails instanceof CovoltUserDetails) {
+            CovoltUserDetails covoltUser = (CovoltUserDetails) userDetails;
+            claims.put("userId", covoltUser.getUserId().toString());
+        }
+        
         return Jwts.builder()
-                .setSubject(userDetails.getUsername()) // email olabilir
+                .setClaims(claims)
+                .setSubject(userDetails.getUsername()) // Email adresi
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -60,5 +72,10 @@ public class JwtService {
 
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
+    }
+
+    // JWT'den kullanıcı ID'sini çıkarmak için yeni metod
+    public String extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", String.class));
     }
 }

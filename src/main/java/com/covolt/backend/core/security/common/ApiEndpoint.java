@@ -20,14 +20,12 @@ public enum ApiEndpoint {
     // Kimlik Doğrulaması Gerektiren Auth Endpoint'leri
     AUTH_LOGOUT("/api/auth/logout", HttpMethod.POST, SecurityAccess.AUTHENTICATED, null),
     AUTH_CHANGE_PASSWORD("/api/auth/password/change", HttpMethod.POST, SecurityAccess.AUTHENTICATED, null), // Mevcut şifreyle değiştirme
+    AUTH_USER_AUTHORITIES("/api/auth/user-authorities", HttpMethod.GET, SecurityAccess.PERMIT_ALL, null), // Geçici olarak herkese açık
 
     // === Kullanıcı Profili (Kendisi İçin) ===
     USER_GET_PROFILE("/api/v1/users/me", HttpMethod.GET, SecurityAccess.AUTHENTICATED, null), // İzin "PROFILE_READ_OWN" olabilir
     USER_UPDATE_PROFILE("/api/v1/users/me", HttpMethod.PUT, SecurityAccess.AUTHENTICATED, null), // İzin "PROFILE_UPDATE_OWN" olabilir
 
-    // === Platform Admin - İzin (Permission) Yönetimi ===
-    // İzinler genellikle platform admini tarafından AdminInitializer'da oluşturulur.
-    // 'MANAGE_PERMISSIONS' iznine sahip olanlar erişebilir.
     PERMISSION_CREATE("/api/v1/platform-admin/permissions", HttpMethod.POST, SecurityAccess.HAS_AUTHORITY, "MANAGE_PERMISSIONS"),
     PERMISSION_GET_ALL("/api/v1/platform-admin/permissions", HttpMethod.GET, SecurityAccess.HAS_AUTHORITY, "MANAGE_PERMISSIONS"),
     PERMISSION_GET_BY_ID("/api/v1/platform-admin/permissions/{permissionId}", HttpMethod.GET, SecurityAccess.HAS_AUTHORITY, "MANAGE_PERMISSIONS"),
@@ -56,13 +54,15 @@ public enum ApiEndpoint {
     // 'MANAGE_COMPANIES' iznine sahip olanlar erişebilir.
     COMPANY_GET_ALL_FOR_ADMIN("/api/v1/platform-admin/companies", HttpMethod.GET, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANIES"),
     COMPANY_GET_BY_ID_FOR_ADMIN("/api/v1/platform-admin/companies/{companyId}", HttpMethod.GET, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANIES"),
-    COMPANY_CREATE_MANUAL_FOR_ADMIN("/api/v1/platform-admin/companies", HttpMethod.POST, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANIES"), // İzin MANAGE_COMPANIES veya COMPANY_CREATE olabilir
+    COMPANY_CREATE_MANUAL_FOR_ADMIN("/api/v1/platform-admin/companies", HttpMethod.POST, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANIES"),
     COMPANY_UPDATE_PROFILE_FOR_ADMIN("/api/v1/platform-admin/companies/{companyId}", HttpMethod.PUT, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANIES"),
     COMPANY_UPDATE_STATUS_FOR_ADMIN("/api/v1/platform-admin/companies/{companyId}/status", HttpMethod.PATCH, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANIES"),
+    COMPANY_CREATE_SUBSCRIPTION_FOR_ADMIN("/api/v1/platform-admin/companies/{companyId}/subscriptions", HttpMethod.POST, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANIES"),
+    COMPANY_STATISTICS_FOR_ADMIN("/api/v1/platform-admin/companies/statistics", HttpMethod.GET, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANIES"),
 
     // === Platform Admin - Müşteri Firma Kullanıcıları Yönetimi ===
     // 'MANAGE_COMPANY_USERS' (veya daha spesifik) iznine sahip olanlar erişebilir.
-    COMPANY_USERS_GET_ALL_FOR_ADMIN("/api/v1/platform-admin/companies/{companyId}/users", HttpMethod.GET, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANY_USERS"), // Yeni izin gerekebilir
+    COMPANY_USERS_GET_ALL_FOR_ADMIN("/api/v1/platform-admin/companies/{companyId}/users", HttpMethod.GET, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANY_USERS"),
     COMPANY_USER_UPDATE_STATUS_FOR_ADMIN("/api/v1/platform-admin/users/{userId}/status", HttpMethod.PUT, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANY_USERS"),
 
     // --- Diğer Modüller ve Endpoint'ler Buraya Eklenecek ---
@@ -72,8 +72,10 @@ public enum ApiEndpoint {
 
     // Swagger / OpenAPI endpoint'leri (permitAll)
     SWAGGER_UI("/swagger-ui/**", HttpMethod.GET, SecurityAccess.PERMIT_ALL, null),
-    API_DOCS("/v3/api-docs/**", HttpMethod.GET, SecurityAccess.PERMIT_ALL, null);
-
+    SWAGGER_RESOURCES("/swagger-resources/**", HttpMethod.GET, SecurityAccess.PERMIT_ALL, null),
+    API_DOCS("/v3/api-docs/**", HttpMethod.GET, SecurityAccess.PERMIT_ALL, null),
+    SWAGGER_UI_HTML("/swagger-ui.html", HttpMethod.GET, SecurityAccess.PERMIT_ALL, null),
+    SWAGGER_CONFIG("/v3/api-docs/swagger-config", HttpMethod.GET, SecurityAccess.PERMIT_ALL, null);
 
     private final String pathPattern; // Ant path pattern
     private final HttpMethod httpMethod;
@@ -89,10 +91,7 @@ public enum ApiEndpoint {
 
     // getPathPattern(), getHttpMethod(), getAccessType(), getAuthority() Lombok @Getter ile otomatik gelir.
 
-    /**
-     * SecurityConfig'de kullanılacak SpEL ifadesini veya özel string'i döndürür.
-     * @return Spring Security SpEL ifadesi veya "permitAll", "authenticated".
-     */
+
     public String getSecurityExpression() {
         switch (accessType) {
             case PERMIT_ALL:
@@ -103,8 +102,6 @@ public enum ApiEndpoint {
                 if (authority == null || authority.trim().isEmpty()) {
                     throw new IllegalStateException("HAS_ROLE için 'authority' alanı (rol adı) boş olamaz: " + this.name());
                 }
-                // Rol adlarının "ROLE_" ile başladığını varsayıyoruz veya burada ekleyebiliriz.
-                // AdminInitializer'da rolleri ROLE_ prefixi ile oluşturduğumuz için direkt authority'yi kullanabiliriz.
                 return "hasRole('" + authority + "')";
             case HAS_AUTHORITY:
                 if (authority == null || authority.trim().isEmpty()) {
@@ -126,13 +123,6 @@ public enum ApiEndpoint {
         if (params == null || params.length == 0) {
             return pathPattern;
         }
-        // Basit bir replaceAll, daha karmaşık bir regex gerekebilir
-        // veya Spring'in UriComponentsBuilder'ı kullanılabilir.
-        // Şimdilik sadece ilk path variable'ı değiştirelim, veya her biri için ayrı enum yapalım.
-        // Daha iyi bir yaklaşım: Her path variable için ayrı bir enum sabiti veya sabitler.
-        // Örneğin: ROLE_GET_BY_ID("/api/v1/platform-admin/roles/%s", ...) -> getPath(roleId)
-        // Şimdilik, pathPattern'ı olduğu gibi döndürelim, SecurityConfig'de AntMatcher bunu anlar.
-        // Veya String.format kullanalım:
         try {
             // String.format, {roleId} gibi placeholder'ları anlamaz.
             // Basit bir placeholder değiştirme yapalım:

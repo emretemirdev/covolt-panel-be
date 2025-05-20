@@ -7,9 +7,10 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> { // BaseEntity PK tipinize göre Long'u düzeltin
+public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID> { // BaseEntity PK tipinize göre Long'u düzeltin
 
     Optional<RefreshToken> findByToken(String token);
 

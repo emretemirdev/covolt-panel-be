@@ -7,7 +7,7 @@ import com.covolt.backend.core.exception.ResourceNotFoundException;
 import com.covolt.backend.core.model.Permission;
 import com.covolt.backend.core.repository.PermissionRepository;
 import com.covolt.backend.core.repository.RoleRepository; // İzin silinirken kontrol için
-import com.covolt.backend.modules.platform_administration.role_permission_management.dto.PermissionRequestDto;
+import com.covolt.backend.modules.platform_administration.dto.PermissionRequestDto;
 import com.covolt.backend.modules.platform_administration.role_permission_management.service.PermissionService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

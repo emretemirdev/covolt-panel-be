@@ -1,8 +1,8 @@
 package com.covolt.backend.modules.platform_administration.role_permission_management.controller;
 
 import com.covolt.backend.core.model.Permission;
-import com.covolt.backend.modules.platform_administration.role_permission_management.dto.PermissionRequestDto;
-import com.covolt.backend.modules.platform_administration.role_permission_management.dto.PermissionResponseDto; // Eğer kullanacaksak
+import com.covolt.backend.modules.platform_administration.dto.PermissionRequestDto;
+import com.covolt.backend.modules.platform_administration.role_permission_management.dto.PermissionResponseDto;
 import com.covolt.backend.modules.platform_administration.role_permission_management.service.PermissionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -74,3 +74,5 @@ public class PlatformAdminPermissionController {
         // GlobalExceptionHandler bunları yakalayacaktır.
     }
 }
+
+

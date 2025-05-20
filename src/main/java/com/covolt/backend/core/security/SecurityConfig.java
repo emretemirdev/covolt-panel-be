@@ -22,6 +22,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;   // ÖNEML
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import com.covolt.backend.modules.platform_administration.dto.PermissionRequestDto;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -31,18 +37,6 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService; // CustomUserDetailsService buraya enjekte edilecek
-    // PasswordEncoder'ı buradan kaldırıyoruz, çünkü bu sınıf onu @Bean ile üretiyor.
-    // private final PasswordEncoder passwordEncoder; // <<<--- BU SATIRI SİL VEYA YORUMA AL
-
-    // @RequiredArgsConstructor bu constructor'ı oluşturur (PasswordEncoder olmadan):
-    // public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
-    //                       UserDetailsService userDetailsService) {
-    //     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    //     this.userDetailsService = userDetailsService;
-    // }
-
-    // PasswordEncoder bean'ini burada tanımlıyoruz.
-    // AuthServiceImpl veya diğer servisler bu bean'i doğrudan enjekte alacak.
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -58,6 +52,37 @@ public class SecurityConfig {
         // authProvider.setPasswordEncoder(this.passwordEncoder()); // this.passwordEncoder() yerine direkt metot çağrısı
         authProvider.setPasswordEncoder(passwordEncoder()); // Yukarıdaki @Bean metodunu çağırır
         return authProvider;
+    }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // Tüm origins'e izin ver
+        configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
+        configuration.setAllowCredentials(true);        // veya daha güvenli bir yaklaşım için:
+        // configuration.addAllowedOriginPattern("*");
+        
+        // Eğer credentials (cookies, auth headers) kullanıyorsanız, 
+        // wildcard origin (*) ile setAllowCredentials(true) birlikte kullanılamaz.
+        // Bu durumda spesifik origin'ler belirtmeli veya pattern kullanmalısınız:
+        configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
+        
+        // İzin verilen tüm HTTP metodları
+        configuration.addAllowedMethod("*");
+
+        // İzin verilen tüm headers
+        configuration.addAllowedHeader("*");
+
+        // Credentials izni (cookies, authorization headers, etc.)
+        configuration.setAllowCredentials(true);
+
+        // OPTIONS isteklerinin önbelleğe alınma süresi (1 saat)
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 
     @Bean

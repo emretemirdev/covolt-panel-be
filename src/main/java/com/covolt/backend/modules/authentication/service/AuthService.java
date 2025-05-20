@@ -1,9 +1,11 @@
-package com.covolt.backend.service;
+package com.covolt.backend.modules.authentication.service;
 
-import com.covolt.backend.dto.auth.AuthResponse;
-import com.covolt.backend.dto.auth.LoginRequest;
-import com.covolt.backend.dto.auth.RefreshTokenRequest;
-import com.covolt.backend.dto.auth.RegisterRequest;
+import com.covolt.backend.modules.authentication.dto.AuthResponse;
+import com.covolt.backend.modules.authentication.dto.LoginRequest;
+import com.covolt.backend.modules.authentication.dto.RefreshTokenRequest;
+import com.covolt.backend.modules.authentication.dto.RegisterRequest;
+import com.covolt.backend.modules.authentication.dto.UserAuthoritiesResponse;
+
 
 public interface AuthService {
 
@@ -14,4 +16,6 @@ public interface AuthService {
     AuthResponse refreshToken(RefreshTokenRequest request);
 
     void logout(String refreshToken); // Logout DTO kullanmayıp direkt string alıyoruz
+
+    UserAuthoritiesResponse getUserAuthorities();
 }
