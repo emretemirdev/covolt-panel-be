@@ -54,13 +54,15 @@ public enum ApiEndpoint {
     // 'MANAGE_COMPANIES' iznine sahip olanlar erişebilir.
     COMPANY_GET_ALL_FOR_ADMIN("/api/v1/platform-admin/companies", HttpMethod.GET, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANIES"),
     COMPANY_GET_BY_ID_FOR_ADMIN("/api/v1/platform-admin/companies/{companyId}", HttpMethod.GET, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANIES"),
-    COMPANY_CREATE_MANUAL_FOR_ADMIN("/api/v1/platform-admin/companies", HttpMethod.POST, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANIES"), // İzin MANAGE_COMPANIES veya COMPANY_CREATE olabilir
+    COMPANY_CREATE_MANUAL_FOR_ADMIN("/api/v1/platform-admin/companies", HttpMethod.POST, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANIES"),
     COMPANY_UPDATE_PROFILE_FOR_ADMIN("/api/v1/platform-admin/companies/{companyId}", HttpMethod.PUT, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANIES"),
     COMPANY_UPDATE_STATUS_FOR_ADMIN("/api/v1/platform-admin/companies/{companyId}/status", HttpMethod.PATCH, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANIES"),
+    COMPANY_CREATE_SUBSCRIPTION_FOR_ADMIN("/api/v1/platform-admin/companies/{companyId}/subscriptions", HttpMethod.POST, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANIES"),
+    COMPANY_STATISTICS_FOR_ADMIN("/api/v1/platform-admin/companies/statistics", HttpMethod.GET, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANIES"),
 
     // === Platform Admin - Müşteri Firma Kullanıcıları Yönetimi ===
     // 'MANAGE_COMPANY_USERS' (veya daha spesifik) iznine sahip olanlar erişebilir.
-    COMPANY_USERS_GET_ALL_FOR_ADMIN("/api/v1/platform-admin/companies/{companyId}/users", HttpMethod.GET, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANY_USERS"), // Yeni izin gerekebilir
+    COMPANY_USERS_GET_ALL_FOR_ADMIN("/api/v1/platform-admin/companies/{companyId}/users", HttpMethod.GET, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANY_USERS"),
     COMPANY_USER_UPDATE_STATUS_FOR_ADMIN("/api/v1/platform-admin/users/{userId}/status", HttpMethod.PUT, SecurityAccess.HAS_AUTHORITY, "MANAGE_COMPANY_USERS"),
 
     // --- Diğer Modüller ve Endpoint'ler Buraya Eklenecek ---

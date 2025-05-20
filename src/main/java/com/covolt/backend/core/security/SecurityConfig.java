@@ -57,23 +57,20 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // İzin verilen origins
-        configuration.addAllowedOrigin("http://localhost:5173");
-        configuration.addAllowedOriginPattern("http://localhost:5173/**");
-        configuration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:5173/**"));
+        // Tüm origins'e izin ver
+        configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
+        configuration.setAllowCredentials(true);        // veya daha güvenli bir yaklaşım için:
+        // configuration.addAllowedOriginPattern("*");
+        
+        // Eğer credentials (cookies, auth headers) kullanıyorsanız, 
+        // wildcard origin (*) ile setAllowCredentials(true) birlikte kullanılamaz.
+        // Bu durumda spesifik origin'ler belirtmeli veya pattern kullanmalısınız:
+        configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
+        
+        // İzin verilen tüm HTTP metodları
+        configuration.addAllowedMethod("*");
 
-        // Gerekirse production URL'lerini de ekleyin
-        // configuration.addAllowedOrigin("https://your-production-domain.com");
-
-        // İzin verilen HTTP metodları
-        configuration.addAllowedMethod("GET");
-        configuration.addAllowedMethod("POST");
-        configuration.addAllowedMethod("PUT");
-        configuration.addAllowedMethod("DELETE");
-        configuration.addAllowedMethod("PATCH");
-        configuration.addAllowedMethod("OPTIONS");
-
-        // İzin verilen headers
+        // İzin verilen tüm headers
         configuration.addAllowedHeader("*");
 
         // Credentials izni (cookies, authorization headers, etc.)
