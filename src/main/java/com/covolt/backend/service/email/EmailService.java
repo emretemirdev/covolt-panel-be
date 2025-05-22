@@ -10,54 +10,54 @@ import com.covolt.backend.service.email.dto.PasswordResetEmailDto;
 public interface EmailService {
 
     /**
-     * Send password reset email to user
-     *
-     * @param emailDto Password reset email data
-     * @return true if email sent successfully, false otherwise
-     */
+ * Sends a password reset email to a user using the provided email data.
+ *
+ * @param emailDto the data required to compose the password reset email
+ * @return true if the email was sent successfully; false otherwise
+ */
     boolean sendPasswordResetEmail(PasswordResetEmailDto emailDto);
 
     /**
-     * Send welcome email to new user
-     *
-     * @param email User email
-     * @param fullName User full name
-     * @param companyName Company name
-     * @param temporaryPassword Temporary password
-     * @return true if email sent successfully, false otherwise
-     */
+ * Sends a welcome email to a new user with their temporary password and company information.
+ *
+ * @param email the recipient's email address
+ * @param fullName the full name of the new user
+ * @param companyName the name of the company the user is joining
+ * @param temporaryPassword the temporary password assigned to the user
+ * @return true if the welcome email was sent successfully; false otherwise
+ */
     boolean sendWelcomeEmail(String email, String fullName, String companyName, String temporaryPassword);
 
     /**
-     * Send user transfer notification email
-     *
-     * @param email User email
-     * @param fullName User full name
-     * @param fromCompanyName Source company name
-     * @param toCompanyName Target company name
-     * @param transferReason Transfer reason
-     * @return true if email sent successfully, false otherwise
-     */
+                                        * Sends a notification email to a user about their transfer from one company to another, including the reason for the transfer.
+                                        *
+                                        * @param email the recipient's email address
+                                        * @param fullName the full name of the user being transferred
+                                        * @param fromCompanyName the name of the company the user is leaving
+                                        * @param toCompanyName the name of the company the user is joining
+                                        * @param transferReason the reason for the user's transfer
+                                        * @return true if the notification email was sent successfully; false otherwise
+                                        */
     boolean sendUserTransferNotification(String email, String fullName, String fromCompanyName,
                                        String toCompanyName, String transferReason);
 
     /**
-     * Send role update notification email
-     *
-     * @param email User email
-     * @param fullName User full name
-     * @param companyName Company name
-     * @param newRoles New roles assigned
-     * @param changeReason Change reason
-     * @return true if email sent successfully, false otherwise
-     */
+                                      * Sends a notification email to a user about updates to their roles within a company.
+                                      *
+                                      * @param email the recipient's email address
+                                      * @param fullName the full name of the user
+                                      * @param companyName the name of the company where the role update occurred
+                                      * @param newRoles a description of the new roles assigned to the user
+                                      * @param changeReason the reason for the role change
+                                      * @return true if the notification email was sent successfully; false otherwise
+                                      */
     boolean sendRoleUpdateNotification(String email, String fullName, String companyName,
                                      String newRoles, String changeReason);
 
     /**
-     * Check if email service is enabled
-     *
-     * @return true if email service is enabled
-     */
+ * Returns whether the email service is currently enabled.
+ *
+ * @return true if the email service is enabled; false otherwise
+ */
     boolean isEmailEnabled();
 }

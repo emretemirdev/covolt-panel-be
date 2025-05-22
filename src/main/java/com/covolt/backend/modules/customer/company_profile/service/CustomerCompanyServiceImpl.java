@@ -39,6 +39,11 @@ public class CustomerCompanyServiceImpl implements CustomerCompanyService {
     private final UserRepository userRepository;
     private final CompanySubscriptionService companySubscriptionService;
 
+    /**
+     * Retrieves the profile of the company associated with the currently authenticated user.
+     *
+     * @return the company profile data for the current user
+     */
     @Override
     @Transactional(readOnly = true)
     public CompanyProfileDto getMyCompanyProfile() {
@@ -50,6 +55,14 @@ public class CustomerCompanyServiceImpl implements CustomerCompanyService {
         return mapToCompanyProfileDto(company);
     }
 
+    /**
+     * Updates the profile of the currently authenticated user's company with the provided fields.
+     *
+     * Only non-null fields in the request are applied to the company profile. Returns the updated company profile as a DTO.
+     *
+     * @param request the fields to update in the company profile
+     * @return the updated company profile
+     */
     @Override
     @Transactional
     public CompanyProfileDto updateMyCompanyProfile(UpdateCompanyProfileRequest request) {
@@ -89,6 +102,12 @@ public class CustomerCompanyServiceImpl implements CustomerCompanyService {
         return mapToCompanyProfileDto(updatedCompany);
     }
 
+    /**
+     * Retrieves a paginated list of users belonging to the currently authenticated user's company.
+     *
+     * @param pageable pagination and sorting information
+     * @return a page of company user DTOs for the current user's company
+     */
     @Override
     @Transactional(readOnly = true)
     public Page<CompanyUsersDto> getMyCompanyUsers(Pageable pageable) {
@@ -103,6 +122,12 @@ public class CustomerCompanyServiceImpl implements CustomerCompanyService {
         return users.map(this::mapToCompanyUsersDto);
     }
 
+    /**
+     * Retrieves the current active subscription for the authenticated user's company.
+     *
+     * @return the active company subscription as a {@link CompanySubscriptionDto}
+     * @throws ResourceNotFoundException if no active subscription exists for the company
+     */
     @Override
     @Transactional(readOnly = true)
     public CompanySubscriptionDto getMyCompanySubscription() {
@@ -119,6 +144,13 @@ public class CustomerCompanyServiceImpl implements CustomerCompanyService {
                 });
     }
 
+    /**
+     * Retrieves the company ID associated with the currently authenticated user.
+     *
+     * @return the UUID of the user's company
+     * @throws AccessDeniedException if the user is not authenticated
+     * @throws ResourceNotFoundException if the user or their company is not found
+     */
     @Override
     public UUID getCurrentUserCompanyId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -137,6 +169,13 @@ public class CustomerCompanyServiceImpl implements CustomerCompanyService {
         return user.getCompany().getId();
     }
 
+    /**
+     * Retrieves a company entity by its ID or throws a ResourceNotFoundException if not found.
+     *
+     * @param companyId the unique identifier of the company to retrieve
+     * @return the Company entity corresponding to the given ID
+     * @throws ResourceNotFoundException if no company exists with the specified ID
+     */
     private Company findCompanyById(UUID companyId) {
         return companyRepository.findById(companyId)
                 .orElseThrow(() -> {
@@ -145,6 +184,12 @@ public class CustomerCompanyServiceImpl implements CustomerCompanyService {
                 });
     }
 
+    /**
+     * Maps a {@link Company} entity to a {@link CompanyProfileDto}, including user count and current subscription details.
+     *
+     * @param company the company entity to map
+     * @return a DTO containing company profile information, total users, and current subscription status
+     */
     private CompanyProfileDto mapToCompanyProfileDto(Company company) {
         // Get user count for the company
         long userCount = userRepository.countByCompany(company);
@@ -193,6 +238,12 @@ public class CustomerCompanyServiceImpl implements CustomerCompanyService {
                 .build();
     }
 
+    /**
+     * Converts a User entity to a CompanyUsersDto, including user details and assigned roles.
+     *
+     * @param user the User entity to convert
+     * @return a CompanyUsersDto containing the user's information and roles
+     */
     private CompanyUsersDto mapToCompanyUsersDto(User user) {
         List<String> roles = user.getRoles().stream()
                 .map(role -> role.getName())
@@ -210,6 +261,12 @@ public class CustomerCompanyServiceImpl implements CustomerCompanyService {
                 .build();
     }
 
+    /**
+     * Converts a {@link CompanySubscription} entity to a {@link CompanySubscriptionDto}, extracting plan details, features, status, dates, and calculated days remaining.
+     *
+     * @param subscription the company subscription entity to convert
+     * @return a DTO containing subscription plan information, status, relevant dates, features, and flags indicating activity and trial status
+     */
     private CompanySubscriptionDto mapToCompanySubscriptionDto(CompanySubscription subscription) {
         List<String> features = subscription.getPlan() != null && subscription.getPlan().getFeatures() != null
                 ? subscription.getPlan().getFeatures().stream()

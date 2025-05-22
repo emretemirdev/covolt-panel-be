@@ -91,6 +91,11 @@ public class PlatformAdminCompanyController {
         return ResponseEntity.ok(companyManagementService.getCompanyUsers(companyId, pageable));
     }
 
+    /**
+     * Retrieves aggregated statistics about companies in the platform.
+     *
+     * @return a response containing company statistics data
+     */
     @GetMapping("/statistics")
     @Operation(summary = "Get company statistics", description = "Retrieves statistics about companies in the platform")
     public ResponseEntity<CompanyStatisticsDto> getCompanyStatistics() {
@@ -98,7 +103,13 @@ public class PlatformAdminCompanyController {
         return ResponseEntity.ok(companyManagementService.getCompanyStatistics());
     }
 
-    // === User Management Endpoints ===
+    /**
+     * Adds a new user to the specified company.
+     *
+     * @param companyId the UUID of the company to which the user will be added
+     * @param request the details of the user to add
+     * @return a response containing the result of the user addition operation
+     */
 
     @PostMapping("/{companyId}/users")
     @PreAuthorize("hasAuthority('MANAGE_COMPANY_USERS')")
@@ -111,6 +122,13 @@ public class PlatformAdminCompanyController {
                 .body(companyManagementService.addUserToCompany(companyId, request));
     }
 
+    /**
+     * Removes a user from the specified company.
+     *
+     * @param companyId the UUID of the company
+     * @param userId the UUID of the user to remove
+     * @return a response containing the result of the user removal operation
+     */
     @DeleteMapping("/{companyId}/users/{userId}")
     @PreAuthorize("hasAuthority('MANAGE_COMPANY_USERS')")
     @Operation(summary = "Remove user from company", description = "Removes a user from the specified company")
@@ -121,6 +139,13 @@ public class PlatformAdminCompanyController {
         return ResponseEntity.ok(companyManagementService.removeUserFromCompany(companyId, userId));
     }
 
+    /**
+     * Transfers a user to a different company.
+     *
+     * @param userId the UUID of the user to transfer
+     * @param request the transfer details, including the target company ID
+     * @return the result of the user transfer operation
+     */
     @PatchMapping("/users/{userId}/transfer")
     @PreAuthorize("hasAuthority('MANAGE_COMPANY_USERS')")
     @Operation(summary = "Transfer user to another company", description = "Transfers a user from one company to another")
@@ -131,6 +156,14 @@ public class PlatformAdminCompanyController {
         return ResponseEntity.ok(companyManagementService.transferUser(userId, request));
     }
 
+    /**
+     * Updates the roles assigned to a user within a specific company.
+     *
+     * @param companyId the UUID of the company
+     * @param userId the UUID of the user whose roles are to be updated
+     * @param request the request containing the new set of roles
+     * @return the result of the user role update operation
+     */
     @PutMapping("/{companyId}/users/{userId}/roles")
     @PreAuthorize("hasAuthority('MANAGE_COMPANY_USERS')")
     @Operation(summary = "Update user roles", description = "Updates the roles of a user in the specified company")
@@ -142,6 +175,14 @@ public class PlatformAdminCompanyController {
         return ResponseEntity.ok(companyManagementService.updateUserRoles(companyId, userId, request));
     }
 
+    /**
+     * Resets the password of a user within a specified company and optionally sends an email notification.
+     *
+     * @param companyId the UUID of the company the user belongs to
+     * @param userId the UUID of the user whose password will be reset
+     * @param request the password reset request details
+     * @return the result of the password reset operation
+     */
     @PostMapping("/{companyId}/users/{userId}/password-reset")
     @PreAuthorize("hasAuthority('MANAGE_COMPANY_USERS')")
     @Operation(summary = "Reset user password", description = "Resets the password of a user and optionally sends email notification")

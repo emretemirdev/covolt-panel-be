@@ -26,6 +26,11 @@ public class CustomerCompanyController {
 
     private final CustomerCompanyService customerCompanyService;
 
+    /**
+     * Retrieves the authenticated user's company profile.
+     *
+     * @return the company profile of the current user wrapped in a ResponseEntity
+     */
     @GetMapping("/profile")
     @Operation(summary = "Get my company profile", description = "Retrieves the current user's company profile information")
     public ResponseEntity<CompanyProfileDto> getMyCompanyProfile() {
@@ -33,6 +38,12 @@ public class CustomerCompanyController {
         return ResponseEntity.ok(customerCompanyService.getMyCompanyProfile());
     }
 
+    /**
+     * Updates the authenticated user's company profile with the provided information.
+     *
+     * @param request the updated company profile data
+     * @return the updated company profile
+     */
     @PutMapping("/profile")
     @Operation(summary = "Update my company profile", description = "Updates the current user's company profile information")
     public ResponseEntity<CompanyProfileDto> updateMyCompanyProfile(
@@ -41,6 +52,12 @@ public class CustomerCompanyController {
         return ResponseEntity.ok(customerCompanyService.updateMyCompanyProfile(request));
     }
 
+    /**
+     * Returns a paginated list of users belonging to the authenticated user's company.
+     *
+     * @param pageable pagination and sorting information
+     * @return a ResponseEntity containing a page of company user details
+     */
     @GetMapping("/users")
     @Operation(summary = "Get my company users", description = "Retrieves all users in the current user's company")
     public ResponseEntity<Page<CompanyUsersDto>> getMyCompanyUsers(Pageable pageable) {
@@ -48,6 +65,11 @@ public class CustomerCompanyController {
         return ResponseEntity.ok(customerCompanyService.getMyCompanyUsers(pageable));
     }
 
+    /**
+     * Retrieves the subscription details of the authenticated user's company.
+     *
+     * @return the company's subscription information wrapped in a ResponseEntity
+     */
     @GetMapping("/subscription")
     @Operation(summary = "Get my company subscription", description = "Retrieves the current user's company subscription information")
     public ResponseEntity<CompanySubscriptionDto> getMyCompanySubscription() {

@@ -53,6 +53,11 @@ public class SecurityConfig {
         authProvider.setPasswordEncoder(passwordEncoder()); // Yukarıdaki @Bean metodunu çağırır
         return authProvider;
     }
+    /**
+     * Defines a CORS configuration source that allows all origins, methods, and headers, permits credentials, and sets a preflight cache duration of one hour.
+     *
+     * @return a CorsConfigurationSource configured for permissive cross-origin requests
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

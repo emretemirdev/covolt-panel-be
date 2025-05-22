@@ -32,7 +32,12 @@ public class EmailController {
 
     private final EmailFeatureService emailFeatureService;
 
-    // === SINGLE EMAIL OPERATIONS ===
+    /**
+     * Sends a single email with the specified type and content.
+     *
+     * @param request the email request containing recipient, type, and content details
+     * @return the response containing information about the sent email
+     */
 
     @PostMapping("/send")
     @PreAuthorize("hasAuthority('SEND_EMAIL')")
@@ -43,6 +48,12 @@ public class EmailController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Sends an email asynchronously and returns a tracking ID and status.
+     *
+     * @param request the email details to be sent asynchronously
+     * @return a map containing the generated email ID and the status "QUEUED"
+     */
     @PostMapping("/send-async")
     @PreAuthorize("hasAuthority('SEND_EMAIL')")
     @Operation(summary = "Send email asynchronously", description = "Send email asynchronously and return tracking ID")
@@ -52,6 +63,12 @@ public class EmailController {
         return ResponseEntity.ok(Map.of("emailId", emailId, "status", "QUEUED"));
     }
 
+    /**
+     * Schedules an email to be sent at a specified future time.
+     *
+     * @param request the email details including recipient, content, and scheduled time
+     * @return the response containing details of the scheduled email
+     */
     @PostMapping("/schedule")
     @PreAuthorize("hasAuthority('SCHEDULE_EMAIL')")
     @Operation(summary = "Schedule email", description = "Schedule an email to be sent at a specific time")
@@ -62,7 +79,12 @@ public class EmailController {
         return ResponseEntity.ok(response);
     }
 
-    // === BULK EMAIL OPERATIONS ===
+    /**
+     * Sends emails to multiple recipients in a single bulk operation.
+     *
+     * @param request the bulk email request containing recipients and email details
+     * @return the response containing the status and details of the bulk email operation
+     */
 
     @PostMapping("/bulk/send")
     @PreAuthorize("hasAuthority('SEND_BULK_EMAIL')")
@@ -74,6 +96,12 @@ public class EmailController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Queues a bulk email operation for asynchronous sending to multiple recipients.
+     *
+     * @param request the bulk email request containing recipients and email details
+     * @return a map containing the bulk email operation ID and status "QUEUED"
+     */
     @PostMapping("/bulk/send-async")
     @PreAuthorize("hasAuthority('SEND_BULK_EMAIL')")
     @Operation(summary = "Send bulk emails asynchronously", description = "Send bulk emails asynchronously")
@@ -84,7 +112,15 @@ public class EmailController {
         return ResponseEntity.ok(Map.of("bulkEmailId", bulkEmailId, "status", "QUEUED"));
     }
 
-    // === QUICK SEND ENDPOINTS ===
+    /**
+     * Sends a welcome email using the provided recipient and company details.
+     *
+     * The request map must include keys for "email", "fullName", "companyName", and "temporaryPassword".
+     * Additional data can be supplied via the "additionalData" key.
+     *
+     * @param request a map containing recipient email, full name, company name, temporary password, and optional additional data
+     * @return the response containing details of the sent welcome email
+     */
 
     @PostMapping("/quick/welcome")
     @PreAuthorize("hasAuthority('SEND_EMAIL')")
@@ -103,6 +139,14 @@ public class EmailController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Sends an email verification message using the provided request parameters.
+     *
+     * The request map must contain the recipient's email, full name, verification token, and verification URL.
+     *
+     * @param request a map containing "email", "fullName", "verificationToken", and "verificationUrl"
+     * @return the response containing details of the sent email
+     */
     @PostMapping("/quick/verification")
     @PreAuthorize("hasAuthority('SEND_EMAIL')")
     @Operation(summary = "Send email verification", description = "Quick method to send email verification")
@@ -119,6 +163,14 @@ public class EmailController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Sends a password reset email using the provided parameters.
+     *
+     * The request map must include the recipient's email, full name, reset token, and reset URL.
+     * Optionally, an expiration time in minutes can be specified (defaults to 30).
+     *
+     * @return the response containing details of the sent password reset email
+     */
     @PostMapping("/quick/password-reset")
     @PreAuthorize("hasAuthority('SEND_EMAIL')")
     @Operation(summary = "Send password reset email", description = "Quick method to send password reset email")
@@ -136,7 +188,12 @@ public class EmailController {
         return ResponseEntity.ok(response);
     }
 
-    // === EMAIL TRACKING AND MANAGEMENT ===
+    /**
+     * Retrieves the details of an email by its unique identifier.
+     *
+     * @param emailId the unique identifier of the email to retrieve
+     * @return a response containing the email details if found, or 404 Not Found if the email does not exist
+     */
 
     @GetMapping("/{emailId}")
     @PreAuthorize("hasAuthority('VIEW_EMAIL')")
@@ -147,6 +204,13 @@ public class EmailController {
         return email.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Retrieves a paginated list of emails associated with the specified user.
+     *
+     * @param userId the unique identifier of the user whose emails are to be retrieved
+     * @param pageable pagination and sorting information
+     * @return a ResponseEntity containing a page of EmailResponse objects for the user
+     */
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasAuthority('VIEW_EMAIL')")
     @Operation(summary = "Get emails by user", description = "Get all emails for a specific user")
@@ -158,6 +222,13 @@ public class EmailController {
         return ResponseEntity.ok(emails);
     }
 
+    /**
+     * Retrieves a paginated list of emails associated with a specific company.
+     *
+     * @param companyId the unique identifier of the company whose emails are to be retrieved
+     * @param pageable pagination and sorting information
+     * @return a ResponseEntity containing a page of EmailResponse objects for the specified company
+     */
     @GetMapping("/company/{companyId}")
     @PreAuthorize("hasAuthority('VIEW_EMAIL')")
     @Operation(summary = "Get emails by company", description = "Get all emails for a specific company")
@@ -169,6 +240,13 @@ public class EmailController {
         return ResponseEntity.ok(emails);
     }
 
+    /**
+     * Retrieves a paginated list of emails filtered by the specified email type.
+     *
+     * @param emailType the type of emails to retrieve
+     * @param pageable pagination and sorting information
+     * @return a ResponseEntity containing a page of EmailResponse objects matching the given type
+     */
     @GetMapping("/type/{emailType}")
     @PreAuthorize("hasAuthority('VIEW_EMAIL')")
     @Operation(summary = "Get emails by type", description = "Get all emails of a specific type")
@@ -180,6 +258,14 @@ public class EmailController {
         return ResponseEntity.ok(emails);
     }
 
+    /**
+     * Retrieves a paginated list of emails sent within the specified date and time range.
+     *
+     * @param startDate the start of the date range (inclusive)
+     * @param endDate the end of the date range (inclusive)
+     * @param pageable pagination and sorting information
+     * @return a response entity containing a page of email responses within the given date range
+     */
     @GetMapping("/date-range")
     @PreAuthorize("hasAuthority('VIEW_EMAIL')")
     @Operation(summary = "Get emails by date range", description = "Get emails within a date range")
@@ -192,7 +278,12 @@ public class EmailController {
         return ResponseEntity.ok(emails);
     }
 
-    // === BULK EMAIL TRACKING ===
+    /**
+     * Retrieves details of a bulk email operation by its unique ID.
+     *
+     * @param bulkEmailId the identifier of the bulk email operation
+     * @return the bulk email details if found, or 404 Not Found if the ID does not exist
+     */
 
     @GetMapping("/bulk/{bulkEmailId}")
     @PreAuthorize("hasAuthority('VIEW_EMAIL')")
@@ -203,6 +294,13 @@ public class EmailController {
         return bulkEmail.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Retrieves a paginated list of bulk emails associated with a specific campaign.
+     *
+     * @param campaignId the unique identifier of the campaign
+     * @param pageable pagination information for the result set
+     * @return a response entity containing a page of bulk email responses
+     */
     @GetMapping("/bulk/campaign/{campaignId}")
     @PreAuthorize("hasAuthority('VIEW_EMAIL')")
     @Operation(summary = "Get bulk emails by campaign", description = "Get all bulk emails for a campaign")
@@ -214,7 +312,12 @@ public class EmailController {
         return ResponseEntity.ok(bulkEmails);
     }
 
-    // === EMAIL MANAGEMENT ===
+    /**
+     * Retries sending a failed email by its ID.
+     *
+     * @param emailId the unique identifier of the email to retry
+     * @return the email response if the retry is successful, or 404 Not Found if the email does not exist
+     */
 
     @PostMapping("/{emailId}/retry")
     @PreAuthorize("hasAuthority('MANAGE_EMAIL')")
@@ -228,6 +331,12 @@ public class EmailController {
         return ResponseEntity.notFound().build();
     }
 
+    /**
+     * Cancels a scheduled email by its ID.
+     *
+     * @param emailId the unique identifier of the scheduled email to cancel
+     * @return a response containing the cancellation status and email ID if successful, or 404 if not found
+     */
     @DeleteMapping("/{emailId}/cancel")
     @PreAuthorize("hasAuthority('MANAGE_EMAIL')")
     @Operation(summary = "Cancel scheduled email", description = "Cancel a scheduled email")
@@ -240,6 +349,12 @@ public class EmailController {
         return ResponseEntity.notFound().build();
     }
 
+    /**
+     * Cancels a bulk email operation by its ID.
+     *
+     * @param bulkEmailId the identifier of the bulk email operation to cancel
+     * @return a response containing the cancellation status and bulkEmailId if successful, or 404 if not found
+     */
     @DeleteMapping("/bulk/{bulkEmailId}/cancel")
     @PreAuthorize("hasAuthority('MANAGE_EMAIL')")
     @Operation(summary = "Cancel bulk email", description = "Cancel a bulk email operation")
@@ -252,7 +367,11 @@ public class EmailController {
         return ResponseEntity.notFound().build();
     }
 
-    // === SYSTEM STATUS ===
+    /**
+     * Retrieves the current operational status and health details of the email service.
+     *
+     * @return a response entity containing a map with service status information
+     */
 
     @GetMapping("/status")
     @PreAuthorize("hasAuthority('VIEW_SYSTEM_STATUS')")
@@ -263,6 +382,11 @@ public class EmailController {
         return ResponseEntity.ok(status);
     }
 
+    /**
+     * Provides a simple health check for the email service.
+     *
+     * @return a map containing the service status, name, current timestamp, and whether the email service is enabled
+     */
     @GetMapping("/health")
     @Operation(summary = "Health check", description = "Simple health check endpoint")
     public ResponseEntity<Map<String, Object>> healthCheck() {

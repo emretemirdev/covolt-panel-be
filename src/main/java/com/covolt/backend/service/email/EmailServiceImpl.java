@@ -31,6 +31,12 @@ public class EmailServiceImpl implements EmailService {
     @Value("${app.email.enabled:true}")
     private boolean emailEnabled;
 
+    /**
+     * Sends a password reset email to the specified user using a Thymeleaf template.
+     *
+     * @param emailDto data transfer object containing recipient and reset details
+     * @return true if the email was sent successfully; false if sending failed or email functionality is disabled
+     */
     @Override
     public boolean sendPasswordResetEmail(PasswordResetEmailDto emailDto) {
         if (!emailEnabled) {
@@ -70,6 +76,15 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
+    /**
+     * Sends a welcome email with account details to a new user.
+     *
+     * @param email recipient's email address
+     * @param fullName recipient's full name
+     * @param companyName name of the company the user is joining
+     * @param temporaryPassword temporary password assigned to the user
+     * @return true if the email was sent successfully; false otherwise
+     */
     @Override
     public boolean sendWelcomeEmail(String email, String fullName, String companyName, String temporaryPassword) {
         if (!emailEnabled) {
@@ -101,6 +116,16 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
+    /**
+     * Sends an account transfer notification email to a user, informing them of their transfer from one company to another.
+     *
+     * @param email recipient's email address
+     * @param fullName recipient's full name
+     * @param fromCompanyName name of the previous company
+     * @param toCompanyName name of the new company
+     * @param transferReason reason for the transfer (may be null)
+     * @return true if the email was sent successfully; false otherwise
+     */
     @Override
     public boolean sendUserTransferNotification(String email, String fullName, String fromCompanyName, 
                                               String toCompanyName, String transferReason) {
@@ -133,6 +158,16 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
+    /**
+     * Sends a role update notification email to a user with details about their new roles and the reason for the change.
+     *
+     * @param email recipient's email address
+     * @param fullName recipient's full name
+     * @param companyName name of the company associated with the user
+     * @param newRoles description of the user's new roles
+     * @param changeReason reason for the role update
+     * @return true if the email was sent successfully; false otherwise
+     */
     @Override
     public boolean sendRoleUpdateNotification(String email, String fullName, String companyName, 
                                             String newRoles, String changeReason) {
@@ -165,11 +200,25 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
+    /**
+     * Indicates whether email sending functionality is currently enabled.
+     *
+     * @return true if email sending is enabled; false otherwise
+     */
     @Override
     public boolean isEmailEnabled() {
         return emailEnabled;
     }
 
+    /**
+     * Builds the HTML content for a welcome email, including personalized greeting, company name, user email, and temporary password.
+     *
+     * @param fullName the recipient's full name
+     * @param companyName the name of the company where the account was created
+     * @param email the recipient's email address
+     * @param temporaryPassword the temporary password assigned to the user
+     * @return the formatted HTML content for the welcome email
+     */
     private String buildWelcomeEmailContent(String fullName, String companyName, String email, String temporaryPassword) {
         return String.format("""
             <html>
@@ -193,6 +242,15 @@ public class EmailServiceImpl implements EmailService {
             """, fullName, companyName, email, temporaryPassword);
     }
 
+    /**
+     * Builds the HTML content for a user account transfer notification email.
+     *
+     * @param fullName the recipient's full name
+     * @param fromCompanyName the name of the previous company
+     * @param toCompanyName the name of the new company
+     * @param transferReason the reason for the transfer, or "Belirtilmemiş" if null
+     * @return the formatted HTML string for the transfer notification email
+     */
     private String buildTransferNotificationContent(String fullName, String fromCompanyName, String toCompanyName, String transferReason) {
         return String.format("""
             <html>
@@ -216,6 +274,15 @@ public class EmailServiceImpl implements EmailService {
             """, fullName, fromCompanyName, toCompanyName, transferReason != null ? transferReason : "Belirtilmemiş");
     }
 
+    /**
+     * Builds the HTML content for a role update notification email.
+     *
+     * @param fullName the recipient's full name
+     * @param companyName the name of the company where the role update occurred
+     * @param newRoles a description of the new roles assigned to the user
+     * @param changeReason the reason for the role change, or "Belirtilmemiş" if not provided
+     * @return a formatted HTML string for the role update notification email
+     */
     private String buildRoleUpdateNotificationContent(String fullName, String companyName, String newRoles, String changeReason) {
         return String.format("""
             <html>

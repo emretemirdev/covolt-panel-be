@@ -13,129 +13,129 @@ import java.util.UUID;
 public interface CompanyManagementService {
 
     /**
-     * Get all companies with optional filtering
-     *
-     * @param status Optional status filter
-     * @param name Optional name filter (partial match)
-     * @param type Optional type filter
-     * @param pageable Pagination information
-     * @return Page of company DTOs
-     */
+ * Retrieves a paginated list of companies, optionally filtered by status, partial name match, and type.
+ *
+ * @param status optional filter for company status
+ * @param name optional filter for company name (supports partial matches)
+ * @param type optional filter for company type
+ * @param pageable pagination and sorting information
+ * @return a page of company data transfer objects matching the provided filters
+ */
     Page<CompanyDto> getAllCompanies(String status, String name, String type, Pageable pageable);
 
     /**
-     * Get company by ID
-     *
-     * @param companyId Company ID
-     * @return Company DTO
-     */
+ * Retrieves a company's details by its unique identifier.
+ *
+ * @param companyId the unique identifier of the company
+ * @return the company's data transfer object
+ */
     CompanyDto getCompanyById(UUID companyId);
 
     /**
-     * Create a new company
-     *
-     * @param request Company creation request
-     * @return Created company DTO
-     */
+ * Creates a new company using the provided creation request.
+ *
+ * @param request the details required to create the company
+ * @return the DTO representing the newly created company
+ */
     CompanyDto createCompany(CreateCompanyRequest request);
 
-    /**
-     * Update an existing company
-     *
-     * @param companyId Company ID
-     * @param request Company update request
-     * @return Updated company DTO
-     */
+    /****
+ * Updates the details of an existing company with the provided information.
+ *
+ * @param companyId the unique identifier of the company to update
+ * @param request the data containing updated company information
+ * @return the updated company data transfer object
+ */
     CompanyDto updateCompany(UUID companyId, UpdateCompanyRequest request);
 
     /**
-     * Update company status
-     *
-     * @param companyId Company ID
-     * @param request Status update request
-     * @return Updated company DTO
-     */
+ * Updates the status of a specified company.
+ *
+ * @param companyId the unique identifier of the company to update
+ * @param request the status update details
+ * @return the updated company data transfer object
+ */
     CompanyDto updateCompanyStatus(UUID companyId, UpdateCompanyStatusRequest request);
 
     /**
-     * Create a subscription for a company
-     *
-     * @param companyId Company ID
-     * @param request Subscription creation request
-     * @return Updated company DTO
-     */
+ * Creates a new subscription for the specified company.
+ *
+ * @param companyId the unique identifier of the company
+ * @param request the subscription creation details
+ * @return the updated company data including the new subscription
+ */
     CompanyDto createCompanySubscription(UUID companyId, CreateCompanySubscriptionRequest request);
 
     /**
-     * Get users for a company
-     *
-     * @param companyId Company ID
-     * @param pageable Pagination information
-     * @return Page of user DTOs
-     */
+ * Retrieves a paginated list of users associated with the specified company.
+ *
+ * @param companyId the unique identifier of the company
+ * @param pageable pagination and sorting information
+ * @return a page of user DTOs belonging to the company
+ */
     Page<UserDto> getCompanyUsers(UUID companyId, Pageable pageable);
 
     /**
-     * Get company statistics
-     *
-     * @return Company statistics DTO
-     */
+ * Retrieves aggregated statistics about all companies.
+ *
+ * @return a DTO containing company statistics
+ */
     CompanyStatisticsDto getCompanyStatistics();
 
     /**
-     * Find company by ID or throw exception
-     *
-     * @param companyId Company ID
-     * @return Company entity
-     */
+ * Retrieves the company entity with the specified ID or throws an exception if not found.
+ *
+ * @param companyId the unique identifier of the company to retrieve
+ * @return the corresponding Company entity
+ */
     Company findCompanyById(UUID companyId);
 
     // === User Management Operations ===
 
     /**
-     * Add a new user to a company
-     *
-     * @param companyId Company ID
-     * @param request User creation request
-     * @return User operation response
-     */
+ * Adds a new user to the specified company.
+ *
+ * @param companyId the unique identifier of the company
+ * @param request the details required to create the new user
+ * @return the result of the user addition operation
+ */
     UserOperationResponse addUserToCompany(UUID companyId, AddUserToCompanyRequest request);
 
     /**
-     * Remove a user from a company
-     *
-     * @param companyId Company ID
-     * @param userId User ID
-     * @return User operation response
-     */
+ * Removes a user from the specified company.
+ *
+ * @param companyId the unique identifier of the company
+ * @param userId the unique identifier of the user to remove
+ * @return the result of the user removal operation
+ */
     UserOperationResponse removeUserFromCompany(UUID companyId, UUID userId);
 
     /**
-     * Transfer a user to another company
-     *
-     * @param userId User ID
-     * @param request Transfer request
-     * @return User operation response
-     */
+ * Transfers a user to a different company based on the provided transfer request.
+ *
+ * @param userId the unique identifier of the user to transfer
+ * @param request details of the transfer, including the target company
+ * @return the result of the user transfer operation
+ */
     UserOperationResponse transferUser(UUID userId, TransferUserRequest request);
 
     /**
-     * Update user roles in a company
-     *
-     * @param companyId Company ID
-     * @param userId User ID
-     * @param request Role update request
-     * @return User operation response
-     */
+ * Updates the roles assigned to a user within a specified company.
+ *
+ * @param companyId the unique identifier of the company
+ * @param userId the unique identifier of the user whose roles are to be updated
+ * @param request the details of the new roles to assign
+ * @return the result of the user role update operation
+ */
     UserOperationResponse updateUserRoles(UUID companyId, UUID userId, UpdateUserRolesRequest request);
 
     /**
-     * Reset user password and send notification email
-     *
-     * @param companyId Company ID
-     * @param userId User ID
-     * @param request Password reset request
-     * @return Password reset response
-     */
+ * Resets the password for a user within a specified company and sends a notification email.
+ *
+ * @param companyId the unique identifier of the company
+ * @param userId the unique identifier of the user whose password will be reset
+ * @param request the password reset request containing new password details
+ * @return a response containing the result of the password reset operation
+ */
     PasswordResetResponse resetUserPassword(UUID companyId, UUID userId, PasswordResetRequest request);
 }
