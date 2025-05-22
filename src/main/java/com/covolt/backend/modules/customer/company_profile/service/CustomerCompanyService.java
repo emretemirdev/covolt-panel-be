@@ -11,40 +11,40 @@ import java.util.UUID;
  */
 public interface CustomerCompanyService {
 
-    /**
-     * Get current user's company profile
-     * 
-     * @return Company profile DTO
-     */
+    /****
+ * Retrieves the company profile associated with the currently authenticated user.
+ *
+ * @return the company profile data for the current user
+ */
     CompanyProfileDto getMyCompanyProfile();
     
     /**
-     * Update current user's company profile
-     * 
-     * @param request Company profile update request
-     * @return Updated company profile DTO
-     */
+ * Updates the current user's company profile with the provided information.
+ *
+ * @param request the details to update in the company profile
+ * @return the updated company profile
+ */
     CompanyProfileDto updateMyCompanyProfile(UpdateCompanyProfileRequest request);
     
     /**
-     * Get current user's company users
-     * 
-     * @param pageable Pagination information
-     * @return Page of company users DTOs
-     */
+ * Retrieves a paginated list of users associated with the current user's company.
+ *
+ * @param pageable pagination and sorting information
+ * @return a page of company user data transfer objects
+ */
     Page<CompanyUsersDto> getMyCompanyUsers(Pageable pageable);
     
     /**
-     * Get current user's company subscription information
-     * 
-     * @return Company subscription DTO
-     */
+ * Retrieves the subscription details of the current user's company.
+ *
+ * @return the subscription information for the company associated with the authenticated user
+ */
     CompanySubscriptionDto getMyCompanySubscription();
     
     /**
-     * Get current authenticated user's company ID
-     * 
-     * @return Company ID
-     */
+ * Retrieves the unique identifier of the company associated with the current authenticated user.
+ *
+ * @return the UUID of the current user's company
+ */
     UUID getCurrentUserCompanyId();
 }

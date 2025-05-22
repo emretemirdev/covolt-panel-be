@@ -48,26 +48,52 @@ public enum EmailType {
     private final String defaultSubject;
     private final String templatePath;
     
+    /**
+     * Constructs an EmailType enum constant with the specified code, default subject, and template path.
+     *
+     * @param code unique identifier for the email type
+     * @param defaultSubject default subject line for the email, in Turkish
+     * @param templatePath path to the email template used for this type
+     */
     EmailType(String code, String defaultSubject, String templatePath) {
         this.code = code;
         this.defaultSubject = defaultSubject;
         this.templatePath = templatePath;
     }
     
+    /**
+     * Returns the unique code identifier for this email type.
+     *
+     * @return the code associated with the email type
+     */
     public String getCode() {
         return code;
     }
     
+    /**
+     * Returns the default subject line for this email type.
+     *
+     * @return the default subject in Turkish associated with the email type
+     */
     public String getDefaultSubject() {
         return defaultSubject;
     }
     
+    /**
+     * Returns the template path associated with this email type.
+     *
+     * @return the path to the email template
+     */
     public String getTemplatePath() {
         return templatePath;
     }
     
     /**
-     * Get EmailType by code
+     * Returns the {@link EmailType} corresponding to the specified code.
+     *
+     * @param code the unique string identifier of the email type
+     * @return the matching {@code EmailType}
+     * @throws IllegalArgumentException if no {@code EmailType} with the given code exists
      */
     public static EmailType fromCode(String code) {
         for (EmailType type : values()) {

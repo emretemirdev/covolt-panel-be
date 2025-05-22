@@ -17,21 +17,39 @@ public enum EmailStatus {
     private final String displayName;
     private final String description;
     
+    /**
+     * Constructs an EmailStatus enum constant with the specified display name and description.
+     *
+     * @param displayName the short label for the email status
+     * @param description a detailed explanation of the email status
+     */
     EmailStatus(String displayName, String description) {
         this.displayName = displayName;
         this.description = description;
     }
     
+    /**
+     * Returns the display name associated with this email status.
+     *
+     * @return the display name in Turkish for the current status
+     */
     public String getDisplayName() {
         return displayName;
     }
     
+    /**
+     * Returns the detailed description of the email status in Turkish.
+     *
+     * @return the description associated with this status
+     */
     public String getDescription() {
         return description;
     }
     
     /**
-     * Check if email is in a final state (completed or failed)
+     * Determines whether the email status represents a terminal state.
+     *
+     * @return {@code true} if the status is SENT, DELIVERED, FAILED, BOUNCED, REJECTED, or CANCELLED; {@code false} otherwise
      */
     public boolean isFinalState() {
         return this == SENT || this == DELIVERED || this == FAILED || 
@@ -39,14 +57,18 @@ public enum EmailStatus {
     }
     
     /**
-     * Check if email was successfully sent
+     * Returns whether the email status indicates a successful send.
+     *
+     * @return {@code true} if the status is SENT or DELIVERED; {@code false} otherwise
      */
     public boolean isSuccessful() {
         return this == SENT || this == DELIVERED;
     }
     
     /**
-     * Check if email failed
+     * Determines whether the email status represents a failure state.
+     *
+     * @return {@code true} if the status is FAILED, BOUNCED, or REJECTED; otherwise {@code false}
      */
     public boolean isFailed() {
         return this == FAILED || this == BOUNCED || this == REJECTED;

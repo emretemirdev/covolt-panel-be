@@ -42,6 +42,14 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
     private final Map<String, EmailResponse> emailStorage = new ConcurrentHashMap<>();
     private final Map<String, BulkEmailResponse> bulkEmailStorage = new ConcurrentHashMap<>();
 
+    /**
+     * Sends a single email synchronously using the provided request details.
+     *
+     * If the email service is disabled, returns a failed response without attempting to send. Generates a unique email ID, builds the subject and HTML content from templates, sends the email, updates the response status based on the outcome, and stores the result in memory.
+     *
+     * @param request the email request containing recipient, type, template variables, and other metadata
+     * @return an {@link EmailResponse} with the status and details of the email operation
+     */
     @Override
     public EmailResponse sendEmail(EmailRequest request) {
         log.debug("Sending email: type={}, to={}", request.getEmailType(), request.getTo());
@@ -81,6 +89,14 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return response;
     }
 
+    /**
+     * Initiates asynchronous sending of an email and returns a generated email ID immediately.
+     *
+     * The email is processed in a background task. The resulting status and response are stored in memory and can be retrieved later using the returned email ID.
+     *
+     * @param request the email request containing recipient, content, and metadata
+     * @return the unique ID assigned to the asynchronous email operation
+     */
     @Override
     @Async
     public String sendEmailAsync(EmailRequest request) {
@@ -103,6 +119,12 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return emailId;
     }
 
+    /**
+     * Schedules an email for future delivery by creating a pending email response and storing it for later processing.
+     *
+     * @param request the email request containing recipient, type, and scheduled time
+     * @return the scheduled email response with status set to PENDING
+     */
     @Override
     public EmailResponse scheduleEmail(EmailRequest request) {
         log.debug("Scheduling email: type={}, to={}, scheduledAt={}",
@@ -120,6 +142,14 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return response;
     }
 
+    /**
+     * Sends a bulk email to multiple recipients, processing them in batches and tracking individual results.
+     *
+     * Processes the provided recipients in batches of configurable size, sending an email to each recipient using the specified template and variables. Tracks the number of successful and failed sends, applies a delay between batches if configured, and stores the results in memory. Returns a response containing detailed results for each recipient and overall bulk operation status.
+     *
+     * @param request the bulk email request containing recipients, template data, batch size, and delay settings
+     * @return a response summarizing the outcome of the bulk email operation, including individual email results and counts
+     */
     @Override
     public BulkEmailResponse sendBulkEmail(BulkEmailRequest request) {
         log.debug("Sending bulk email: type={}, recipients={}", request.getEmailType(), request.getRecipients().size());
@@ -180,6 +210,14 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return bulkResponse;
     }
 
+    /**
+     * Initiates asynchronous sending of bulk emails and returns the generated bulk email ID immediately.
+     *
+     * The bulk email operation is processed in a separate thread. The resulting response is stored in memory and can be retrieved later using the returned bulk email ID.
+     *
+     * @param request the bulk email request containing recipients and email details
+     * @return the unique ID assigned to the bulk email operation
+     */
     @Override
     @Async
     public String sendBulkEmailAsync(BulkEmailRequest request) {
@@ -199,7 +237,16 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return bulkEmailId;
     }
 
-    // === QUICK SEND METHODS ===
+    /**
+     * Sends a welcome email to a new user with their temporary password and company information.
+     *
+     * @param email recipient's email address
+     * @param fullName recipient's full name
+     * @param companyName name of the company the user is joining
+     * @param temporaryPassword temporary password assigned to the user
+     * @param additionalData optional additional template variables for the email content
+     * @return the response containing the status and details of the sent email
+     */
 
     @Override
     public EmailResponse sendWelcomeEmail(String email, String fullName, String companyName,
@@ -225,6 +272,15 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return sendEmail(request);
     }
 
+    /**
+     * Sends an email verification message to the specified recipient with a verification token and URL.
+     *
+     * @param email recipient's email address
+     * @param fullName recipient's full name
+     * @param verificationToken unique token for email verification
+     * @param verificationUrl URL for completing the email verification process
+     * @return the response containing the status and details of the sent email
+     */
     @Override
     public EmailResponse sendEmailVerification(String email, String fullName, String verificationToken,
                                              String verificationUrl) {
@@ -248,6 +304,16 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return sendEmail(request);
     }
 
+    /**
+     * Sends a password reset email to the specified recipient with a reset token and expiration details.
+     *
+     * @param email the recipient's email address
+     * @param fullName the recipient's full name
+     * @param resetToken the password reset token to include in the email
+     * @param resetUrl the URL for resetting the password
+     * @param expirationMinutes the number of minutes before the reset token expires
+     * @return the response containing the status and details of the sent email
+     */
     @Override
     public EmailResponse sendPasswordResetEmail(String email, String fullName, String resetToken,
                                               String resetUrl, int expirationMinutes) {
@@ -272,6 +338,15 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return sendEmail(request);
     }
 
+    /**
+     * Sends a password changed notification email to the specified recipient.
+     *
+     * @param email the recipient's email address
+     * @param fullName the recipient's full name
+     * @param changedAt the date and time when the password was changed
+     * @param ipAddress the IP address from which the password change occurred, or "Bilinmiyor" if unknown
+     * @return the response containing the status and details of the sent email
+     */
     @Override
     public EmailResponse sendPasswordChangedNotification(String email, String fullName,
                                                         LocalDateTime changedAt, String ipAddress) {
@@ -293,6 +368,15 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return sendEmail(request);
     }
 
+    /**
+     * Sends an account locked notification email to the specified recipient.
+     *
+     * @param email the recipient's email address
+     * @param fullName the recipient's full name
+     * @param reason the reason for the account lock; defaults to a generic message if null
+     * @param lockedAt the timestamp when the account was locked
+     * @return the response containing the status and details of the sent email
+     */
     @Override
     public EmailResponse sendAccountLockedNotification(String email, String fullName, String reason,
                                                      LocalDateTime lockedAt) {
@@ -314,7 +398,13 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return sendEmail(request);
     }
 
-    // === Helper Methods ===
+    /**
+     * Constructs an {@link EmailResponse} object with initial status and metadata based on the provided email request and email ID.
+     *
+     * @param emailId the unique identifier for the email
+     * @param request the email request containing details for the email to be sent
+     * @return a new {@link EmailResponse} initialized with request data and default values
+     */
 
     private EmailResponse createEmailResponse(String emailId, EmailRequest request) {
         return EmailResponse.builder()
@@ -342,6 +432,13 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
                 .build();
     }
 
+    /**
+     * Creates an {@link EmailResponse} representing a failed email operation with the specified error message.
+     *
+     * @param request the original email request
+     * @param errorMessage the error message describing the failure
+     * @return an {@link EmailResponse} with status FAILED and error details
+     */
     private EmailResponse createFailedResponse(EmailRequest request, String errorMessage) {
         EmailResponse response = createEmailResponse(UUID.randomUUID().toString(), request);
         response.setStatus(EmailStatus.FAILED);
@@ -350,6 +447,13 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return response;
     }
 
+    /**
+     * Constructs a new {@link BulkEmailResponse} with metadata and initial values based on the provided bulk email request.
+     *
+     * @param bulkEmailId the unique identifier for the bulk email operation
+     * @param request the bulk email request containing configuration and recipient details
+     * @return a {@link BulkEmailResponse} initialized with request data and empty results and errors lists
+     */
     private BulkEmailResponse createBulkEmailResponse(String bulkEmailId, BulkEmailRequest request) {
         return BulkEmailResponse.builder()
                 .bulkEmailId(bulkEmailId)
@@ -372,6 +476,14 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
                 .build();
     }
 
+    /**
+     * Determines the subject line for an email request.
+     *
+     * Returns the subject specified in the request if provided; otherwise, returns the default subject for the email type.
+     *
+     * @param request the email request containing subject and type information
+     * @return the resolved email subject line
+     */
     private String buildSubject(EmailRequest request) {
         if (request.getSubject() != null && !request.getSubject().trim().isEmpty()) {
             return request.getSubject();
@@ -379,6 +491,14 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return request.getEmailType().getDefaultSubject();
     }
 
+    /**
+     * Generates the HTML content for an email using the specified template and variables.
+     *
+     * If template processing fails, returns fallback HTML content.
+     *
+     * @param request the email request containing template variables and email type
+     * @return the generated HTML content for the email
+     */
     private String buildHtmlContent(EmailRequest request) {
         try {
             Context context = new Context();
@@ -398,6 +518,11 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         }
     }
 
+    /**
+     * Generates a simple HTML email content as a fallback when the template cannot be loaded.
+     *
+     * @return basic HTML content with the email type's default subject and code.
+     */
     private String buildFallbackContent(EmailRequest request) {
         return String.format("""
             <html>
@@ -412,6 +537,17 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
             """, request.getEmailType().getDefaultSubject(), request.getEmailType().getCode());
     }
 
+    /**
+     * Sends an email message using the provided recipient, subject, and HTML content.
+     *
+     * Prepares a MIME email with optional sender name, CC, and BCC recipients, and sends it via the configured mail sender.
+     *
+     * @param to the recipient's email address
+     * @param subject the subject of the email
+     * @param htmlContent the HTML content of the email body
+     * @param request the email request containing sender and recipient details
+     * @throws MessagingException if an error occurs while constructing or sending the email
+     */
     private void sendEmailMessage(String to, String subject, String htmlContent, EmailRequest request)
             throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
@@ -441,6 +577,13 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         mailSender.send(message);
     }
 
+    /**
+     * Constructs an individual {@link EmailRequest} for a bulk email recipient by merging common and recipient-specific template variables and applying recipient overrides.
+     *
+     * @param bulkRequest the bulk email request containing shared configuration and template variables
+     * @param recipient the recipient with individual template variables and optional custom subject
+     * @return an {@link EmailRequest} tailored for the specified recipient
+     */
     private EmailRequest buildEmailRequestFromBulk(BulkEmailRequest bulkRequest,
                                                   BulkEmailRequest.BulkEmailRecipient recipient) {
         Map<String, Object> variables = new HashMap<>(bulkRequest.getCommonTemplateVariables());
@@ -470,13 +613,25 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
                 .build();
     }
 
-    // === System Management Methods ===
+    /**
+     * Checks whether the email service is currently enabled.
+     *
+     * @return true if the email service is enabled; false otherwise
+     */
 
     @Override
     public boolean isEmailServiceEnabled() {
         return emailConfig.isEnabled();
     }
 
+    /**
+     * Returns a map containing the current health status and statistics of the email service.
+     *
+     * The returned map includes whether the service is enabled, the number of stored emails and bulk emails,
+     * the timestamp of the health check, and a status string.
+     *
+     * @return a map with service health details and metrics
+     */
     @Override
     public Map<String, Object> getServiceHealthStatus() {
         Map<String, Object> status = new HashMap<>();
@@ -488,7 +643,11 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return status;
     }
 
-    // === Stub implementations for remaining methods ===
+    /**
+     * Stub for sending a company transfer notification email.
+     *
+     * @return always returns null as this method is not yet implemented
+     */
 
     @Override
     public EmailResponse sendCompanyTransferNotification(String email, String fullName,
@@ -497,6 +656,11 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return null;
     }
 
+    /**
+     * Stub for sending a role updated notification email to a user.
+     *
+     * @return always returns null as this method is not yet implemented
+     */
     @Override
     public EmailResponse sendRoleUpdatedNotification(String email, String fullName, String companyName,
                                                    List<String> newRoles, String reason) {
@@ -504,6 +668,16 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return null;
     }
 
+    /****
+     * Stub for sending a subscription-related notification email.
+     *
+     * @param subscriptionType the type of subscription event triggering the notification
+     * @param email recipient's email address
+     * @param fullName recipient's full name
+     * @param companyName name of the recipient's company
+     * @param subscriptionData additional data relevant to the subscription event
+     * @return always returns null as this method is not yet implemented
+     */
     @Override
     public EmailResponse sendSubscriptionNotification(EmailType subscriptionType, String email,
                                                      String fullName, String companyName,
@@ -512,6 +686,11 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return null;
     }
 
+    /**
+     * Placeholder for sending a login alert email notification to a user.
+     *
+     * @return always returns null as this method is not yet implemented
+     */
     @Override
     public EmailResponse sendLoginAlert(String email, String fullName, LocalDateTime loginTime,
                                        String ipAddress, String userAgent, String location) {
@@ -519,11 +698,24 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return null;
     }
 
+    /**
+     * Retrieves an email response by its unique ID from in-memory storage.
+     *
+     * @param emailId the unique identifier of the email
+     * @return an Optional containing the EmailResponse if found, or empty if not present
+     */
     @Override
     public Optional<EmailResponse> getEmailById(String emailId) {
         return Optional.ofNullable(emailStorage.get(emailId));
     }
 
+    /**
+     * Retrieves a paginated list of emails associated with the specified user ID.
+     *
+     * @param userId the ID of the user whose emails are to be retrieved
+     * @param pageable pagination information for the result set
+     * @return a page of email responses for the given user
+     */
     @Override
     public Page<EmailResponse> getEmailsByUser(String userId, Pageable pageable) {
         // Simple implementation - in production use database
@@ -533,6 +725,13 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return new PageImpl<>(userEmails, pageable, userEmails.size());
     }
 
+    /**
+     * Retrieves a paginated list of email responses associated with the specified company ID.
+     *
+     * @param companyId the unique identifier of the company
+     * @param pageable pagination information
+     * @return a page of email responses for the given company
+     */
     @Override
     public Page<EmailResponse> getEmailsByCompany(String companyId, Pageable pageable) {
         List<EmailResponse> companyEmails = emailStorage.values().stream()
@@ -541,6 +740,13 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return new PageImpl<>(companyEmails, pageable, companyEmails.size());
     }
 
+    /**
+     * Retrieves a paginated list of emails filtered by the specified email type.
+     *
+     * @param emailType the type of emails to retrieve
+     * @param pageable pagination information
+     * @return a page of email responses matching the given email type
+     */
     @Override
     public Page<EmailResponse> getEmailsByType(EmailType emailType, Pageable pageable) {
         List<EmailResponse> typeEmails = emailStorage.values().stream()
@@ -549,6 +755,14 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return new PageImpl<>(typeEmails, pageable, typeEmails.size());
     }
 
+    /**
+     * Retrieves a paginated list of emails created within the specified date range.
+     *
+     * @param startDate the start of the date range (exclusive)
+     * @param endDate the end of the date range (exclusive)
+     * @param pageable pagination information
+     * @return a page of emails whose creation timestamps fall within the given range
+     */
     @Override
     public Page<EmailResponse> getEmailsByDateRange(LocalDateTime startDate, LocalDateTime endDate,
                                                    Pageable pageable) {
@@ -558,11 +772,24 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return new PageImpl<>(dateEmails, pageable, dateEmails.size());
     }
 
+    /**
+     * Retrieves a bulk email response by its unique ID from in-memory storage.
+     *
+     * @param bulkEmailId the unique identifier of the bulk email
+     * @return an {@code Optional} containing the {@code BulkEmailResponse} if found, or empty if not present
+     */
     @Override
     public Optional<BulkEmailResponse> getBulkEmailById(String bulkEmailId) {
         return Optional.ofNullable(bulkEmailStorage.get(bulkEmailId));
     }
 
+    /**
+     * Retrieves a paginated list of bulk email responses filtered by campaign ID.
+     *
+     * @param campaignId the ID of the campaign to filter bulk emails
+     * @param pageable pagination information
+     * @return a page of bulk email responses associated with the specified campaign
+     */
     @Override
     public Page<BulkEmailResponse> getBulkEmailsByCampaign(String campaignId, Pageable pageable) {
         List<BulkEmailResponse> campaignEmails = bulkEmailStorage.values().stream()
@@ -571,6 +798,12 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return new PageImpl<>(campaignEmails, pageable, campaignEmails.size());
     }
 
+    /**
+     * Attempts to resend an email by its ID if it is eligible for retry.
+     *
+     * @param emailId the unique identifier of the email to retry
+     * @return the response from the resend attempt, or null if the email does not exist or cannot be retried
+     */
     @Override
     public EmailResponse retryEmail(String emailId) {
         EmailResponse email = emailStorage.get(emailId);
@@ -587,6 +820,12 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return null;
     }
 
+    /**
+     * Cancels a scheduled email if it is in PENDING status.
+     *
+     * @param emailId the unique identifier of the scheduled email
+     * @return true if the email was found and cancelled; false otherwise
+     */
     @Override
     public boolean cancelScheduledEmail(String emailId) {
         EmailResponse email = emailStorage.get(emailId);
@@ -597,6 +836,12 @@ public class EmailFeatureServiceImpl implements EmailFeatureService {
         return false;
     }
 
+    /**
+     * Marks a bulk email operation as completed, effectively canceling further processing if it is not already completed.
+     *
+     * @param bulkEmailId the unique identifier of the bulk email operation
+     * @return true if the bulk email was found and successfully marked as completed; false if it was not found or already completed
+     */
     @Override
     public boolean cancelBulkEmail(String bulkEmailId) {
         BulkEmailResponse bulkEmail = bulkEmailStorage.get(bulkEmailId);

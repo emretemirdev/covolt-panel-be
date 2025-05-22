@@ -51,6 +51,18 @@ public class CompanyManagementServiceImpl implements CompanyManagementService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
+    /**
+     * Retrieves a paginated list of companies filtered by optional status, name, and type.
+     *
+     * Filters are applied only if provided and valid; invalid status or type filters are ignored.
+     * Returns companies as {@link CompanyDto} objects.
+     *
+     * @param statusStr optional company status filter as a string
+     * @param name optional company name filter (partial match, case-insensitive)
+     * @param typeStr optional company type filter as a string
+     * @param pageable pagination and sorting information
+     * @return a page of companies matching the provided filters
+     */
     @Override
     @Transactional(readOnly = true)
     public Page<CompanyDto> getAllCompanies(String statusStr, String name, String typeStr, Pageable pageable) {
@@ -302,7 +314,10 @@ public class CompanyManagementServiceImpl implements CompanyManagementService {
     }
 
     /**
-     * Maps a User entity to a UserDto
+     * Converts a User entity to a UserDto containing basic user information.
+     *
+     * @param user the User entity to convert
+     * @return a UserDto with the user's ID, email, username, full name, phone number, enabled and locked status, and creation date
      */
     private UserDto mapToUserDto(User user) {
         return UserDto.builder()
@@ -317,7 +332,15 @@ public class CompanyManagementServiceImpl implements CompanyManagementService {
                 .build();
     }
 
-    // === User Management Operations Implementation ===
+    /**
+     * Adds a new user to a specified company, assigning roles if provided and optionally sending a welcome email.
+     *
+     * Throws a DuplicateRegistrationException if a user with the given email or username already exists.
+     *
+     * @param companyId the ID of the company to which the user will be added
+     * @param request the details of the user to add, including email, username, password, roles, and email preferences
+     * @return a response containing details of the user addition operation
+     */
 
     @Override
     @Transactional
@@ -386,6 +409,15 @@ public class CompanyManagementServiceImpl implements CompanyManagementService {
                 .build();
     }
 
+    /**
+     * Removes a user from a specified company by dissociating the user and disabling their account.
+     *
+     * @param companyId the ID of the company from which the user will be removed
+     * @param userId the ID of the user to remove
+     * @return a response containing details of the removal operation
+     * @throws ResourceNotFoundException if the user does not exist
+     * @throws IllegalArgumentException if the user does not belong to the specified company
+     */
     @Override
     @Transactional
     public UserOperationResponse removeUserFromCompany(UUID companyId, UUID userId) {
@@ -422,6 +454,15 @@ public class CompanyManagementServiceImpl implements CompanyManagementService {
                 .build();
     }
 
+    /**
+     * Transfers a user from their current company to a specified target company, updating company association and roles as requested.
+     *
+     * If new roles are provided, assigns them to the user, either replacing or adding to existing roles based on the request. Optionally sends a transfer notification email to the user. Throws an exception if the user, target company, or any specified role does not exist, or if the user is not currently associated with a company.
+     *
+     * @param userId the ID of the user to transfer
+     * @param request the transfer details, including target company, roles, and notification preferences
+     * @return a response containing details of the transfer operation
+     */
     @Override
     @Transactional
     public UserOperationResponse transferUser(UUID userId, TransferUserRequest request) {
@@ -494,6 +535,18 @@ public class CompanyManagementServiceImpl implements CompanyManagementService {
                 .build();
     }
 
+    /**
+     * Updates the roles of a user within a specified company, either replacing or adding to existing roles based on the request.
+     *
+     * If requested, sends a notification email to the user about the role update.
+     *
+     * @param companyId the ID of the company to which the user belongs
+     * @param userId the ID of the user whose roles are to be updated
+     * @param request the role update request containing role IDs, replacement flag, notification flag, and optional change reason
+     * @return a response detailing the outcome of the user role update operation
+     * @throws ResourceNotFoundException if the company, user, or any specified role is not found
+     * @throws IllegalArgumentException if the user does not belong to the specified company
+     */
     @Override
     @Transactional
     public UserOperationResponse updateUserRoles(UUID companyId, UUID userId, UpdateUserRolesRequest request) {
@@ -560,6 +613,20 @@ public class CompanyManagementServiceImpl implements CompanyManagementService {
                 .build();
     }
 
+    /**
+     * Resets the password for a user within a specified company and optionally sends a notification email.
+     *
+     * If requested, marks the user to force a password change on next login (pending implementation).
+     * Returns a response indicating the outcome of the operation, including status, metadata, and email notification details.
+     *
+     * @param companyId the unique identifier of the company to which the user belongs
+     * @param userId the unique identifier of the user whose password is being reset
+     * @param request the password reset request containing the new password, notification, and force change options
+     * @return a {@link PasswordResetResponse} detailing the result of the password reset operation
+     *
+     * @throws IllegalArgumentException if the user does not belong to the specified company
+     * @throws ResourceNotFoundException if the company or user is not found
+     */
     @Override
     @Transactional
     public PasswordResetResponse resetUserPassword(UUID companyId, UUID userId, PasswordResetRequest request) {

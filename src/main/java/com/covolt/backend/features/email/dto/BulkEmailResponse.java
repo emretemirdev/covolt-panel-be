@@ -67,7 +67,9 @@ public class BulkEmailResponse {
     private String notes;
     
     /**
-     * Get success rate as percentage
+     * Calculates the percentage of successfully sent emails out of the total recipients.
+     *
+     * @return the success rate as a percentage, or 0.0 if there are no recipients
      */
     public double getSuccessRate() {
         if (totalRecipients == 0) return 0.0;
@@ -75,7 +77,9 @@ public class BulkEmailResponse {
     }
     
     /**
-     * Get failure rate as percentage
+     * Calculates the failure rate of the bulk email operation as a percentage.
+     *
+     * @return the percentage of failed emails out of the total recipients, or 0.0 if there are no recipients
      */
     public double getFailureRate() {
         if (totalRecipients == 0) return 0.0;
@@ -83,21 +87,27 @@ public class BulkEmailResponse {
     }
     
     /**
-     * Check if bulk email operation is completed
+     * Determines whether the bulk email operation has completed.
+     *
+     * @return true if the completion timestamp is set and all recipients have been processed; false otherwise
      */
     public boolean isCompleted() {
         return completedAt != null && processedCount == totalRecipients;
     }
     
     /**
-     * Check if bulk email operation is still in progress
+     * Determines whether the bulk email operation has started but not yet completed.
+     *
+     * @return true if the operation has a start timestamp and no completion timestamp; false otherwise
      */
     public boolean isInProgress() {
         return startedAt != null && completedAt == null;
     }
     
     /**
-     * Get progress percentage
+     * Calculates the percentage of recipients that have been processed in the bulk email operation.
+     *
+     * @return the progress percentage, or 0.0 if there are no recipients
      */
     public double getProgressPercentage() {
         if (totalRecipients == 0) return 0.0;

@@ -77,21 +77,27 @@ public class EmailResponse {
     private long processingTimeMs; // How long it took to process
     
     /**
-     * Check if email can be retried
+     * Determines whether the email is eligible for a retry attempt.
+     *
+     * @return {@code true} if the email has failed and the retry count is less than the maximum allowed retries; {@code false} otherwise
      */
     public boolean canRetry() {
         return status.isFailed() && retryCount < maxRetries;
     }
     
     /**
-     * Check if email is still pending or processing
+     * Determines whether the email is currently in a pending or sending state.
+     *
+     * @return true if the email status is PENDING or SENDING; false otherwise
      */
     public boolean isPending() {
         return status == EmailStatus.PENDING || status == EmailStatus.SENDING;
     }
     
     /**
-     * Get success rate for tracking
+     * Returns a success rate metric based on the current email status.
+     *
+     * @return 1.0 if the email was successful, 0.0 if it failed, or 0.5 if it is pending or processing
      */
     public double getSuccessRate() {
         if (status.isSuccessful()) {
