@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Doğrulama - Covolt</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .title {
+            color: #495057;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .verification-icon {
+            font-size: 64px;
+            color: #28a745;
+            margin: 20px 0;
+        }
+        .verify-button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 18px;
+        }
+        .verify-button:hover {
+            background-color: #218838;
+        }
+        .info-box {
+            background-color: #d1ecf1;
+            border-left: 4px solid #bee5eb;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .warning-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .token-display {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 16px;
+            text-align: center;
+            margin: 15px 0;
+            word-break: break-all;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .steps {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: white;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">COVOLT</div>
+            <h1 class="title">Email Doğrulama</h1>
+            <div class="verification-icon">📧</div>
+        </div>
+        
+        <div class="content">
+            <p>Merhaba <strong th:text="${fullName}">Kullanıcı</strong>,</p>
+            
+            <p>Covolt hesabınızı oluşturduğunuz için teşekkür ederiz! Hesabınızı aktifleştirmek için email adresinizi doğrulamanız gerekmektedir.</p>
+            
+            <div class="info-box">
+                <strong>📋 Doğrulama Detayları:</strong><br>
+                <strong>Email:</strong> <span th:text="${email}">user@example.com</span><br>
+                <strong>Doğrulama Süresi:</strong> <span th:text="${expirationMinutes}">60</span> dakika<br>
+                <strong>Gönderim Zamanı:</strong> <span th:text="${#temporals.format(#temporals.createNow(), 'dd.MM.yyyy HH:mm')}">22.05.2023 15:30</span>
+            </div>
+            
+            <div style="text-align: center;">
+                <a th:href="${verificationUrl}" class="verify-button">✅ Email Adresimi Doğrula</a>
+            </div>
+            
+            <div class="steps">
+                <h3 style="margin-top: 0; color: #007bff;">📝 Doğrulama Adımları:</h3>
+                <div class="step">
+                    <strong>1. Adım:</strong> Yukarıdaki "Email Adresimi Doğrula" butonuna tıklayın
+                </div>
+                <div class="step">
+                    <strong>2. Adım:</strong> Açılan sayfada doğrulama işlemini tamamlayın
+                </div>
+                <div class="step">
+                    <strong>3. Adım:</strong> Hesabınız aktifleşecek ve giriş yapabileceksiniz
+                </div>
+            </div>
+            
+            <p>Eğer buton çalışmıyorsa, aşağıdaki bağlantıyı kopyalayıp tarayıcınıza yapıştırabilirsiniz:</p>
+            <div class="token-display" th:text="${verificationUrl}">
+                https://app.covolt.com/verify-email?token=abc123
+            </div>
+            
+            <div class="warning-box">
+                <strong>⚠️ Önemli Uyarılar:</strong><br>
+                • Bu doğrulama bağlantısı sadece <strong th:text="${expirationMinutes}">60</strong> dakika geçerlidir<br>
+                • Bağlantıyı kimseyle paylaşmayın<br>
+                • Eğer bu hesabı siz oluşturmadıysanız, bu emaili görmezden gelebilirsiniz<br>
+                • Doğrulama bağlantısı sadece bir kez kullanılabilir
+            </div>
+            
+            <div class="info-box">
+                <strong>🔄 Doğrulama Bağlantısı Gelmedi mi?</strong><br>
+                • Spam/Junk klasörünüzü kontrol edin<br>
+                • Email adresinizi doğru yazdığınızdan emin olun<br>
+                • Birkaç dakika bekleyip tekrar kontrol edin<br>
+                • Sorun devam ederse destek ekibimizle iletişime geçin
+            </div>
+            
+            <div style="background-color: #e7f3ff; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: center;">
+                <h4 style="margin-top: 0; color: #007bff;">🆘 Yardıma İhtiyacınız Var mı?</h4>
+                <p style="margin: 5px 0;">
+                    <strong>Destek Email:</strong> support@covolt.com<br>
+                    <strong>Telefon:</strong> +90 (212) 123 45 67<br>
+                    <strong>Canlı Destek:</strong> app.covolt.com/support
+                </p>
+            </div>
+            
+            <p>Email doğrulama işlemi tamamlandıktan sonra Covolt platformunun tüm özelliklerinden yararlanabileceksiniz.</p>
+            
+            <p>Teşekkürler,<br><strong>Covolt Ekibi</strong></p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Covolt Platform</strong> - Güvenli ve Hızlı</p>
+            <p>© <span th:text="${currentYear}">2023</span> Covolt. Tüm hakları saklıdır.</p>
+            <p style="font-size: 12px; color: #adb5bd;">
+                Bu otomatik bir e-postadır, lütfen yanıtlamayın.<br>
+                Doğrulama Token: <span th:text="${verificationToken}">abc123</span>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
