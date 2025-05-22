@@ -1,7 +1,7 @@
 package com.covolt.backend.core.security;
 
 import com.covolt.backend.core.security.common.ApiEndpoint;
-import com.covolt.backend.core.security.common.SecurityAccess;
+
 import com.covolt.backend.core.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor; // Lombok kullanıyorsak
 import org.springframework.context.annotation.Bean;
@@ -22,7 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;   // ÖNEML
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import com.covolt.backend.modules.platform_administration.dto.PermissionRequestDto;
+
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -61,12 +61,12 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
         configuration.setAllowCredentials(true);        // veya daha güvenli bir yaklaşım için:
         // configuration.addAllowedOriginPattern("*");
-        
-        // Eğer credentials (cookies, auth headers) kullanıyorsanız, 
+
+        // Eğer credentials (cookies, auth headers) kullanıyorsanız,
         // wildcard origin (*) ile setAllowCredentials(true) birlikte kullanılamaz.
         // Bu durumda spesifik origin'ler belirtmeli veya pattern kullanmalısınız:
         configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
-        
+
         // İzin verilen tüm HTTP metodları
         configuration.addAllowedMethod("*");
 

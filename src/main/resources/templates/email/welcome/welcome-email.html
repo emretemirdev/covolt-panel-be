@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Covolt'a Hoş Geldiniz</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .title {
+            color: #495057;
+            font-size: 26px;
+            margin-bottom: 20px;
+        }
+        .welcome-message {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .credentials-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .credential-item {
+            margin: 10px 0;
+            padding: 8px;
+            background-color: white;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        .credential-label {
+            font-weight: bold;
+            color: #495057;
+            display: inline-block;
+            width: 120px;
+        }
+        .credential-value {
+            font-family: monospace;
+            background-color: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 3px;
+            color: #495057;
+        }
+        .action-button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .action-button:hover {
+            background-color: #0056b3;
+        }
+        .info-box {
+            background-color: #d1ecf1;
+            border-left: 4px solid #bee5eb;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .warning-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .features-list {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .feature-item {
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .feature-item:last-child {
+            border-bottom: none;
+        }
+        .feature-icon {
+            color: #28a745;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .contact-info {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">COVOLT</div>
+            <h1 class="title">Hoş Geldiniz!</h1>
+        </div>
+        
+        <div class="welcome-message">
+            <h2 style="margin: 0; font-size: 24px;">🎉 Covolt Ailesine Katıldınız!</h2>
+            <p style="margin: 10px 0 0 0; font-size: 16px;">Dijital dönüşüm yolculuğunuz başlıyor</p>
+        </div>
+        
+        <div class="content">
+            <p>Merhaba <strong th:text="${fullName}">Kullanıcı</strong>,</p>
+            
+            <p><strong th:text="${companyName}">Şirket Adı</strong> bünyesinde Covolt hesabınız başarıyla oluşturulmuştur. Artık platformumuzun tüm özelliklerinden yararlanabilirsiniz!</p>
+            
+            <div class="credentials-box">
+                <h3 style="margin-top: 0; color: #007bff;">🔐 Giriş Bilgileriniz</h3>
+                <div class="credential-item">
+                    <span class="credential-label">Email:</span>
+                    <span class="credential-value" th:text="${email}">user@example.com</span>
+                </div>
+                <div class="credential-item">
+                    <span class="credential-label">Geçici Şifre:</span>
+                    <span class="credential-value" th:text="${temporaryPassword}">temp123</span>
+                </div>
+                <div class="credential-item">
+                    <span class="credential-label">Şirket:</span>
+                    <span class="credential-value" th:text="${companyName}">Şirket Adı</span>
+                </div>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="https://app.covolt.com/login" class="action-button">🚀 Hemen Giriş Yap</a>
+            </div>
+            
+            <div class="warning-box">
+                <strong>🔒 Güvenlik Önemli:</strong><br>
+                • İlk girişinizde şifrenizi değiştirmeniz önerilir<br>
+                • Şifrenizi kimseyle paylaşmayın<br>
+                • Güçlü bir şifre seçin (en az 8 karakter, büyük/küçük harf, rakam)
+            </div>
+            
+            <div class="features-list">
+                <h3 style="margin-top: 0; color: #007bff;">✨ Neler Yapabilirsiniz?</h3>
+                <div class="feature-item">
+                    <span class="feature-icon">✓</span>
+                    <strong>Dashboard:</strong> Gerçek zamanlı iş verilerinizi takip edin
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">✓</span>
+                    <strong>Raporlama:</strong> Detaylı analiz ve raporlar oluşturun
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">✓</span>
+                    <strong>Kullanıcı Yönetimi:</strong> Ekip üyelerinizi yönetin
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">✓</span>
+                    <strong>API Entegrasyonu:</strong> Sistemlerinizi entegre edin
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">✓</span>
+                    <strong>Mobil Erişim:</strong> Her yerden erişim sağlayın
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <strong>💡 İpucu:</strong> Platformu daha iyi tanımak için yardım merkezimizi ziyaret edebilir veya demo videolarımızı izleyebilirsiniz.
+            </div>
+            
+            <div class="contact-info">
+                <h4 style="margin-top: 0; color: #007bff;">📞 Yardıma mı İhtiyacınız Var?</h4>
+                <p style="margin: 5px 0;">
+                    <strong>Destek Email:</strong> support@covolt.com<br>
+                    <strong>Telefon:</strong> +90 (212) 123 45 67<br>
+                    <strong>Çalışma Saatleri:</strong> Pazartesi-Cuma 09:00-18:00
+                </p>
+            </div>
+            
+            <p>Covolt ekibi olarak sizinle çalışmaktan mutluluk duyuyoruz. Başarılı bir dijital dönüşüm yolculuğu dileriz!</p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Covolt Platform</strong> - Dijital Dönüşümün Lideri</p>
+            <p>© <span th:text="${currentYear}">2023</span> Covolt. Tüm hakları saklıdır.</p>
+            <p style="font-size: 12px; color: #adb5bd;">
+                Bu otomatik bir e-postadır, lütfen yanıtlamayın.<br>
+                Email: <span th:text="${email}">user@example.com</span>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
